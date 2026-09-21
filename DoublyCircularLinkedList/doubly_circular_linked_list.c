@@ -65,13 +65,11 @@
              scanf("%d", &iChoice);
 
              switch(iChoice)
-
-
              {
              case 1:
                  while(1)
                  {
-                     printf("\n1.InsertFirst\n2.InsertLast\n3.InsertAtPosition\n4.Back\n" );
+                     printf("\n1.InsertFirst\n2.InsertLast\n3.InsertAtPosition\n4.Back\n");
                      printf("Enter your choice again:\t");
                      scanf("%d", &iChoice);
 
