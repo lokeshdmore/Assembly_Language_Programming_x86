@@ -58,9 +58,6 @@ msg_main_switch_enter_data_to_search:
 msg_main_switch_print_data_not_found:
     .string "Data not found\n"
 
-msg_main_switch_print_data_not_found_at_pos:
-    .string "Data found at %d position\n"
-
 msg_main_switch_print_data_found_at_pos:
     .string "Data found at %d position\n"
 
@@ -104,6 +101,9 @@ msg_reverse_display_print_list:
 /* ========================== TEXT SECTION ========================= */
 .section .text
 
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o MAIN FUNCTION EXECUTION CODE STARTS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 .globl  main
 .type   main, @function
 main:
@@ -131,17 +131,398 @@ LABEL_OUTSIDE_WHILE:
     call    scanf
 
     /* ++++++++++ switch case starts here +++++++++++++++ */
+    movl    -12(%ebp), %eax
+    cmpl    $1, %eax                                
+    je      LABEL_CASE_1
+    cmpl    $2, %eax
+    je      LABEL_CASE_2
+    cmpl    $3, %eax
+    je      LABEL_CASE_3
+    cmpl    $4, %eax
+    je      LABEL_CASE_4
+    cmpl    $5, %eax
+    je      LABEL_CASE_5
+    cmpl    $6, %eax
+    je      LABEL_CASE_6
+    jmp     LABEL_CASE_DEFAULT
+
+LABEL_CASE_1:
+    /* ----------- case 1 while starts here -------------- */
+LABEL_CASE_1_WHILE:
+    movl    $msg_main_switch_print_insert_list_menu,(%esp)      # printf("\n1.InsertFirst\n2.InsertLast\n3.InsertAtPosition\n4.Back\n");
+    call    printf
+
+    movl    $msg_main_switch_enter_choice_again, (%esp)         # printf("Enter your choice again:\t");
+    call    printf
+
+    leal    -12(%ebp), %ebx                                     # scanf("%d", &iChoice);
+    movl    $msg_main_scan_no, (%esp)
+    movl    %ebx, 4(%esp)
+    call    scanf
+
+    movl    -12(%ebp), %eax
     
+    cmpl    $4, %eax                                            # if(iChoice == 4)
+    je      LABEL_CASE_1_BREAK
+
+    cmpl    $0, %eax
+    jle     LABEL_CASE_1_ENTER_VALID_CHOICE_TRUE
+    
+    cmpl    $3, %eax
+    jle     LABEL_CASE_1_ENTER_VALID_CHOICE_FALSE
+
+LABEL_CASE_1_ENTER_VALID_CHOICE_TRUE:
+    movl    $msg_main_switch_enter_valid_choice, (%esp)
+    call    printf
+    jmp     LABEL_CASE_1_WHILE
+
+LABEL_CASE_1_ENTER_VALID_CHOICE_FALSE:
+    leal    -4(%ebp), %ebx
+    movl    $msg_main_switch_enter_data_to_insert, (%esp)
+    movl    %ebx, 4(%esp)
+    call    scanf
+
+    /* ------- inside case 1, inside switch case starts here ------ */
+    movl    -12(%ebp), %eax
+    cmpl    $1, %eax
+    je      LABEL_CASE_1_CASE_1
+    cmpl    $2, %eax
+    je      LABEL_CASE_1_CASE_2
+    cmpl    $3, %eax
+    je      LABEL_CASE_1_CASE_3
+    jmp     LABEL_CASE_1_CASE_1_BREAK
+    
+    LABEL_CASE_1_CASE_1:
+        # call to the insertFirst() 
+        jmp     LABEL_CASE_1_CASE_1_BREAK
+
+    LABEL_CASE_1_CASE_2:
+        # call to the insertLast()
+        jmp     LABEL_CASE_1_CASE_1_BREAK
+
+    LABEL_CASE_1_CASE_3:
+      
+    /* ------- inside case 1, inside switch case ends here ------ */
+
+
+    LABEL_CASE_1_CASE_1_BREAK:
+        # call to the display function here
+
+    #loop    LABEL_CASE_1_WHILE
+
+
+    /* ------------- case 1 while ends here -------------- */
+LABEL_CASE_1_BREAK:
+
+    jmp     LABEL_OUTSIDE_WHILE
+
+LABEL_CASE_2:
+    movl    $msg_main_switch_print_data_found_at_pos, (%esp)
+    movl    %eax, 4(%esp)
+    call    printf
+    jmp     LABEL_OUTSIDE_WHILE
+
+LABEL_CASE_3:
+
+    movl    $msg_main_switch_print_data_found_at_pos, (%esp)
+    movl    %eax, 4(%esp)
+    call    printf
+    jmp     LABEL_OUTSIDE_WHILE
+
+LABEL_CASE_4:
+
+    movl    $msg_main_switch_print_data_found_at_pos, (%esp)
+    movl    %eax, 4(%esp)
+    call    printf
+    jmp     LABEL_OUTSIDE_WHILE
+
+LABEL_CASE_5:
+
+    movl    $msg_main_switch_print_data_found_at_pos, (%esp)
+    movl    %eax, 4(%esp)
+    call    printf
+    jmp     LABEL_OUTSIDE_WHILE
+
+LABEL_CASE_6:
+
+    movl    $msg_main_switch_print_data_found_at_pos, (%esp)
+    movl    %eax, 4(%esp)
+    call    printf
+    jmp     LABEL_OUTSIDE_WHILE
+
+LABEL_CASE_DEFAULT:
+
+    movl    $msg_main_switch_print_data_found_at_pos, (%esp)
+    movl    %eax, 4(%esp)
+    call    printf
+    jmp     LABEL_OUTSIDE_WHILE
+
 
     /* ++++++++++++ switch case ends here +++++++++++++++ */                           
 
-    loop    LABEL_OUTSIDE_WHILE
+    #loop    LABEL_OUTSIDE_WHILE
 
 
 /* -------------------------- while loop ends here ------------------ */
 
     movl    $0, (%esp)
     call    exit
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o MAIN FUNCTION EXECUTION CODE ENDS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o INSERT LAST FUNCTION EXECUTION CODE STARTS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+.globl  InsertLast
+.type   InsertLast, @function
+InsertLast:
+    pushl   %ebp
+    movl    %esp, %ebp
+
+
+    popl    %ebp 
+    movl    %ebp, %esp
+    ret 
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o INSERT LAST FUNCTION EXECUTION CODE ENDS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o INSERT FIRST FUNCTION EXECUTION CODE STARTS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+.globl  InsertFirst
+.type   InsertFirst, @function
+InsertFirst:
+    pushl   %ebp
+    movl    %esp, %ebp
+    
+
+    popl    %ebp 
+    movl    %ebp, %esp
+    ret 
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o INSERT FIRST FUNCTION EXECUTION CODE ENDS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o INSERT AT POS FUNCTION EXECUTION CODE STARTS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+.globl  InsertAtPosition
+.type   InsertAtPosition, @function
+InsertAtPosition:
+    pushl   %ebp
+    movl    %esp, %ebp
+    
+
+    popl    %ebp 
+    movl    %ebp, %esp
+    ret 
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o INSERT AT POS FUNCTION EXECUTION CODE ENDS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o DELETE LAST FUNCTION EXECUTION CODE STARTS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+.globl  DeleteLast
+.type   DeleteLast, @function
+DeleteLast:
+    pushl   %ebp
+    movl    %esp, %ebp
+
+
+    popl    %ebp 
+    movl    %ebp, %esp
+    ret 
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o DELETE LAST FUNCTION EXECUTION CODE ENDS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o DELETE FIRST FUNCTION EXECUTION CODE STARTS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+.globl  DeleteFirst
+.type   DeleteFirst, @function
+DeleteFirst:
+    pushl   %ebp
+    movl    %esp, %ebp
+    
+
+    popl    %ebp 
+    movl    %ebp, %esp
+    ret 
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o DELETE FIRST FUNCTION EXECUTION CODE ENDS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o DELETE AT POS FUNCTION EXECUTION CODE STARTS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+.globl  DeleteAtPosition
+.type   DeleteAtPosition, @function
+DeleteAtPosition:
+    pushl   %ebp
+    movl    %esp, %ebp
+    
+
+    popl    %ebp 
+    movl    %ebp, %esp
+    ret 
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o DELETE AT POS FUNCTION EXECUTION CODE ENDS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o DELETE ALL NODES FUNCTION EXECUTION CODE STARTS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+.globl  DeleteAllNodes
+.type   DeleteAllNodes, @function
+DeleteAllNodes:
+    pushl   %ebp
+    movl    %esp, %ebp
+    
+
+    popl    %ebp 
+    movl    %ebp, %esp
+    ret 
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o DELETE ALL NODES FUNCTION EXECUTION CODE ENDS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o SEARCH LAST OCCURANCE FUNCTION EXECUTION CODE STARTS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+.globl  SearchLastOccurance
+.type   SearchLastOccurance, @function
+SearchLastOccurance:
+    pushl   %ebp
+    movl    %esp, %ebp
+
+
+    popl    %ebp 
+    movl    %ebp, %esp
+    ret 
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o SEARCH LAST OCCURANCE FUNCTION EXECUTION CODE ENDS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o SEARCH FIRST OCCURANCE FUNCTION EXECUTION CODE STARTS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+.globl  SearchFirstOccurance
+.type   SearchFirstOccurance, @function
+SearchFirstOccurance:
+    pushl   %ebp
+    movl    %esp, %ebp
+    
+
+    popl    %ebp 
+    movl    %ebp, %esp
+    ret 
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o SEARCH FIRST OCCURANCE FUNCTION EXECUTION CODE ENDS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o SEARCH ALL OCCURANCES FUNCTION EXECUTION CODE STARTS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+.globl  SearchAllOccurances
+.type   SearchAllOccurances, @function
+SearchAllOccurances:
+    pushl   %ebp
+    movl    %esp, %ebp
+    
+
+    popl    %ebp 
+    movl    %ebp, %esp
+    ret 
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o SEARCH ALL NODES OCCURANCES FUNCTION EXECUTION CODE ENDS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o DISPLAY FUNCTION EXECUTION CODE STARTS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+.globl  Display
+.type   Display, @function
+Display:
+    pushl   %ebp
+    movl    %esp, %ebp
+
+
+    popl    %ebp 
+    movl    %ebp, %esp
+    ret 
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o DISPLAY FUNCTION EXECUTION CODE ENDS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o REVERSE DISPLAY FUNCTION EXECUTION CODE STARTS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+.globl  ReverseDisplay
+.type   ReverseDisplay, @function
+ReverseDisplay:
+    pushl   %ebp
+    movl    %esp, %ebp
+
+
+    popl    %ebp 
+    movl    %ebp, %esp
+    ret 
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o REVERSE DISPLAY FUNCTION EXECUTION CODE ENDS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o COUNT NODE FUNCTION EXECUTION CODE STARTS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+.globl  CountNode
+.type   CountNode, @function
+CountNode:
+    pushl   %ebp
+    movl    %esp, %ebp
+    
+
+    popl    %ebp 
+    movl    %ebp, %esp
+    ret 
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o COUNT NODE FUNCTION EXECUTION CODE ENDS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+
+
 
 /* ==================== TEXT SECTION ENDS HERE ===================== */
 
