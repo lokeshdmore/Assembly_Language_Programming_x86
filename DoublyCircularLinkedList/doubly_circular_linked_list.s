@@ -181,7 +181,7 @@ LABEL_CASE_1_ENTER_VALID_CHOICE_FALSE:
     call    printf 
 
     leal    -4(%ebp), %ebx                                              # scanf("%d", &iNo);
-    movl    $msg_main_switch_enter_data_to_insert, (%esp)
+    movl    $msg_main_scan_no, (%esp)
     movl    %ebx, 4(%esp)
     call    scanf
 
@@ -197,6 +197,7 @@ LABEL_CASE_1_ENTER_VALID_CHOICE_FALSE:
     
     LABEL_CASE_1_CASE_1:
         # call to the insertFirst() 
+
         leal    -12(%ebp), %eax
         leal    -16(%ebp), %edx
         movl    -4(%ebp), %ecx
@@ -204,6 +205,7 @@ LABEL_CASE_1_ENTER_VALID_CHOICE_FALSE:
         movl    %edx, 4(%esp)
         movl    %ecx, 8(%esp)
         call    InsertFirst
+       
 
         jmp     LABEL_CASE_1_CASE_1_BREAK
 
@@ -322,7 +324,7 @@ InsertFirst:
 
     movl    $NULL, -4(%ebp)                             # struct list *pNewNode = NULL 
 
-    movl    $struct_list_size, (%esp)                   # sizeof(struct list)
+    movl    $12, (%esp)                   # sizeof(struct list)
     call    malloc                                      # malloc(sizeof(struct list))
     movl    %eax, -4(%ebp)                              # pNewNode = malloc(sizeof(struct list))
 
@@ -330,32 +332,48 @@ InsertFirst:
     jne     LABEL_MEM_ALLOCATED
     movl    $msg_print_mem_failed, (%esp)               # printf("memory allocation FAILED\n");
     call    printf
-    jmp     LABEL_EXIT
+    jmp     LABEL_INSERT_FIRST_EXIT
 
 LABEL_MEM_ALLOCATED:
+
     # pNewNode->iData = iNo;
-    movl    $0, %eax 
+    movl    $1, %eax                                    # iCounter
     movl    -4(%ebp), %ebx                              # ebx = pNewNode
-    leal    (%ebx, %eax, 4), %ebx                       # ebx = &(pNewNode + 1 * sizeof(int))
-    movl    16(%ebp), %ebx                              # pNewNode->iData = iNo
-    
+    leal    (%ebx, %eax, 4), %ebx                       # ebx = pNewNode + 1 * sizeof(char*) (accesing the addr of second element of struct list)
+    movl    16(%ebp), %eax                              # eax = iNo 
+    movl    %eax, (%ebx)                                # pNewNode->iData = iNo
+
     # if(NULL == *ppHead)
     movl    8(%ebp), %ebx
     movl    (%ebx), %eax                                # *ppHead
     cmpl    $0, %eax                                    # if(NULL == *ppHead)
     jne     LABEL_LIST_NOT_EMPTY
-    movl    -4(%ebp), (%ebx)                            # *ppHead = pNewNode
-    movl    12(%ebp), %ecx
-    movl    -4(%ebp), (%ecx)                            # *ppTail = pNewNode
+
+
+
+
+
+
+
+
+
+
+
+
+
     movl    (%ecx), %ecx                                # *(ppTail)
-    movl    (%ebx), (%ecx, 2, 4)    
+    movl    $2, %edx
+    movl    %eax, (%ecx, %edx, 4)                       # (*ppTail)->pNext = *ppHead 
+    movl    $0, %edx        
+    movl    %ecx, (%eax, %edx, 4)                     # (*ppHead)->pPrev = *ppTail
+    jmp     LABEL_INSERT_FIRST_EXIT                         
 
 
 LABEL_LIST_NOT_EMPTY:
 
 
 
-LABEL_EXIT:
+LABEL_INSERT_FIRST_EXIT:
     popl    %ebp 
     movl    %ebp, %esp
     ret 
