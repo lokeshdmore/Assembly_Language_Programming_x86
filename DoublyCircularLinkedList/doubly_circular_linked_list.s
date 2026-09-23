@@ -5,8 +5,8 @@
  *	Date   : 21st Sept 2026
  * ================================================================= */
 
-.equ    NULL, 0        # equivalent to #define NULL 0
-
+.equ    NULL,             0         # equivalent to #define NULL 0
+.equ    struct_list_size, 12        # sizeof(struct list)
 /* ===================== READY ONLY DATA SECTION =================== */
 .section .rodata
 
@@ -177,7 +177,10 @@ LABEL_CASE_1_ENTER_VALID_CHOICE_TRUE:
     jmp     LABEL_CASE_1_WHILE
 
 LABEL_CASE_1_ENTER_VALID_CHOICE_FALSE:
-    leal    -4(%ebp), %ebx
+    movl    $msg_main_switch_enter_data_to_insert, (%esp)               # printf("Enter data to be insert:\t");
+    call    printf 
+
+    leal    -4(%ebp), %ebx                                              # scanf("%d", &iNo);
     movl    $msg_main_switch_enter_data_to_insert, (%esp)
     movl    %ebx, 4(%esp)
     call    scanf
@@ -194,6 +197,14 @@ LABEL_CASE_1_ENTER_VALID_CHOICE_FALSE:
     
     LABEL_CASE_1_CASE_1:
         # call to the insertFirst() 
+        leal    -12(%ebp), %eax
+        leal    -16(%ebp), %edx
+        movl    -4(%ebp), %ecx
+        movl    %eax, (%esp)
+        movl    %edx, 4(%esp)
+        movl    %ecx, 8(%esp)
+        call    InsertFirst
+
         jmp     LABEL_CASE_1_CASE_1_BREAK
 
     LABEL_CASE_1_CASE_2:
@@ -207,9 +218,14 @@ LABEL_CASE_1_ENTER_VALID_CHOICE_FALSE:
 
     LABEL_CASE_1_CASE_1_BREAK:
         # call to the display function here
+        movl    -12(%ebp), %eax                                 # Display(pFirst, pLast);
+        movl    -16(%ebp), %edx
+        movl    %eax, (%esp)
+        movl    %edx, 4(%esp)
+        call    Display
 
     #loop    LABEL_CASE_1_WHILE
-
+    jmp     LABEL_CASE_1_WHILE
 
     /* ------------- case 1 while ends here -------------- */
 LABEL_CASE_1_BREAK:
@@ -302,7 +318,44 @@ InsertFirst:
     pushl   %ebp
     movl    %esp, %ebp
     
+    subl    $16, %esp                                   # variable + no of argument + align with 16
 
+    movl    $NULL, -4(%ebp)                             # struct list *pNewNode = NULL 
+
+    movl    $struct_list_size, (%esp)                   # sizeof(struct list)
+    call    malloc                                      # malloc(sizeof(struct list))
+    movl    %eax, -4(%ebp)                              # pNewNode = malloc(sizeof(struct list))
+
+    cmpl    $0, %eax                                    # if(NULL == pNewNode)
+    jne     LABEL_MEM_ALLOCATED
+    movl    $msg_print_mem_failed, (%esp)               # printf("memory allocation FAILED\n");
+    call    printf
+    jmp     LABEL_EXIT
+
+LABEL_MEM_ALLOCATED:
+    # pNewNode->iData = iNo;
+    movl    $0, %eax 
+    movl    -4(%ebp), %ebx                              # ebx = pNewNode
+    leal    (%ebx, %eax, 4), %ebx                       # ebx = &(pNewNode + 1 * sizeof(int))
+    movl    16(%ebp), %ebx                              # pNewNode->iData = iNo
+    
+    # if(NULL == *ppHead)
+    movl    8(%ebp), %ebx
+    movl    (%ebx), %eax                                # *ppHead
+    cmpl    $0, %eax                                    # if(NULL == *ppHead)
+    jne     LABEL_LIST_NOT_EMPTY
+    movl    -4(%ebp), (%ebx)                            # *ppHead = pNewNode
+    movl    12(%ebp), %ecx
+    movl    -4(%ebp), (%ecx)                            # *ppTail = pNewNode
+    movl    (%ecx), %ecx                                # *(ppTail)
+    movl    (%ebx), (%ecx, 2, 4)    
+
+
+LABEL_LIST_NOT_EMPTY:
+
+
+
+LABEL_EXIT:
     popl    %ebp 
     movl    %ebp, %esp
     ret 
