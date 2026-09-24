@@ -544,7 +544,6 @@
    void Display(struct List *pHead, struct List *pTail)
    {
 
-
          printf("\nLinked list is:\n");
 
          if(NULL == pHead)
