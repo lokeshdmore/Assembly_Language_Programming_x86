@@ -149,34 +149,34 @@ LABEL_OUTSIDE_WHILE:
 LABEL_CASE_1:
     /* ----------- case 1 while starts here -------------- */
 LABEL_CASE_1_WHILE:
-    movl    $msg_main_switch_print_insert_list_menu,(%esp)      # printf("\n1.InsertFirst\n2.InsertLast\n3.InsertAtPosition\n4.Back\n");
+    movl    $msg_main_switch_print_insert_list_menu,(%esp)              # printf("\n1.InsertFirst\n2.InsertLast\n3.InsertAtPosition\n4.Back\n");
     call    printf
 
-    movl    $msg_main_switch_enter_choice_again, (%esp)         # printf("Enter your choice again:\t");
+    movl    $msg_main_switch_enter_choice_again, (%esp)                 # printf("Enter your choice again:\t");
     call    printf
 
-    leal    -12(%ebp), %ebx                                     # scanf("%d", &iChoice);
+    leal    -12(%ebp), %ebx                                             # scanf("%d", &iChoice);
     movl    $msg_main_scan_no, (%esp)
     movl    %ebx, 4(%esp)
     call    scanf
 
-    movl    -12(%ebp), %eax                                     # %eax = iChoice
+    movl    -12(%ebp), %eax                                             # %eax = iChoice
     
-    cmpl    $4, %eax                                            # if(iChoice == 4)
+    cmpl    $4, %eax                                                    # if(iChoice == 4)
     je      LABEL_CASE_1_BREAK
 
     cmpl    $0, %eax
-    jle     LABEL_CASE_1_ENTER_VALID_CHOICE_TRUE
+    jle     LABEL_CASE_1_VALID_CHOICE_IF
     
     cmpl    $3, %eax
-    jle     LABEL_CASE_1_ENTER_VALID_CHOICE_FALSE
+    jle     LABEL_CASE_1_VALID_CHOICE_ELSE
 
-LABEL_CASE_1_ENTER_VALID_CHOICE_TRUE:
+LABEL_CASE_1_VALID_CHOICE_IF:
     movl    $msg_main_switch_enter_valid_choice, (%esp)
     call    printf
     jmp     LABEL_CASE_1_WHILE
 
-LABEL_CASE_1_ENTER_VALID_CHOICE_FALSE:
+LABEL_CASE_1_VALID_CHOICE_ELSE:
     movl    $msg_main_switch_enter_data_to_insert, (%esp)               # printf("Enter data to be insert:\t");
     call    printf 
 
@@ -195,41 +195,46 @@ LABEL_CASE_1_ENTER_VALID_CHOICE_FALSE:
     je      LABEL_CASE_1_CASE_3
     jmp     LABEL_CASE_1_CASE_1_BREAK
     
-    LABEL_CASE_1_CASE_1:
-        # call to the insertFirst() 
+LABEL_CASE_1_CASE_1:
+    # InsertFirst(&pFirst, &pLast, iNo);                        
+    leal    -16(%ebp), %eax         
+    leal    -20(%ebp), %edx
+    movl    -4(%ebp), %ecx
+    movl    %eax, (%esp)
+    movl    %edx, 4(%esp)
+    movl    %ecx, 8(%esp)
+    call    InsertFirst                                     # InsertFirst(&pFirst, &pLast, iNo);
 
-        leal    -16(%ebp), %eax
-        leal    -20(%ebp), %edx
-        movl    -4(%ebp), %ecx
-        movl    %eax, (%esp)
-        movl    %edx, 4(%esp)
-        movl    %ecx, 8(%esp)
-        call    InsertFirst
+    jmp     LABEL_CASE_1_CASE_1_BREAK                       
 
-        jmp     LABEL_CASE_1_CASE_1_BREAK
+LABEL_CASE_1_CASE_2:
+    # InsertLast(&pFirst, &pLast, iNo);
+    leal    -16(%ebp), %eax         
+    leal    -20(%ebp), %edx
+    movl    -4(%ebp), %ecx
+    movl    %eax, (%esp)
+    movl    %edx, 4(%esp)
+    movl    %ecx, 8(%esp)
+    call    InsertLast                                     # InsertLast(&pFirst, &pLast, iNo);
 
-    LABEL_CASE_1_CASE_2:
-        # call to the insertLast()
-        jmp     LABEL_CASE_1_CASE_1_BREAK
+    jmp     LABEL_CASE_1_CASE_1_BREAK
 
-    LABEL_CASE_1_CASE_3:
+LABEL_CASE_1_CASE_3:
       
     /* ------- inside case 1, inside switch case ends here ------ */
 
+LABEL_CASE_1_CASE_1_BREAK:
+    # call to the display function here
+    movl    -16(%ebp), %eax                                 # Display(pFirst, pLast);
+    movl    -20(%ebp), %edx
+    movl    %eax, (%esp)
+    movl    %edx, 4(%esp)
+    call    Display
 
-    LABEL_CASE_1_CASE_1_BREAK:
-        # call to the display function here
-        movl    -16(%ebp), %eax                                 # Display(pFirst, pLast);
-        movl    -20(%ebp), %edx
-        movl    %eax, (%esp)
-        movl    %edx, 4(%esp)
-        call    Display
-
-
-    #loop    LABEL_CASE_1_WHILE
     jmp     LABEL_CASE_1_WHILE
 
     /* ------------- case 1 while ends here -------------- */
+
 LABEL_CASE_1_BREAK:
 
     jmp     LABEL_OUTSIDE_WHILE
@@ -300,6 +305,94 @@ InsertLast:
     pushl   %ebp
     movl    %esp, %ebp
 
+    subl    $16, %esp                                               # variable + no of argument + align with 16
+
+    movl    $NULL, -4(%ebp)                                         # struct list *pNewNode = NULL 
+
+    # pNewNode = (struct List *)malloc(sizeof(struct List));
+    movl    $struct_list_size, (%esp)
+    call    malloc                                                  # malloc(sizeof(struct list))
+    movl    %eax, -4(%ebp)                                          # pNewNode = malloc(struct list size)
+    
+    # if(NULL == pNewNode)
+    cmpl    $0, %eax 
+    jne     LABEL_INSERT_LAST_MEM_ALLOCATED
+    movl    $msg_print_mem_failed, (%esp)                           # printf("memory allocation FAILED\n");
+    call    printf
+    jmp     LABEL_INSERT_LAST_EXIT
+
+LABEL_INSERT_LAST_MEM_ALLOCATED:
+    # pNewNode->iData = iNo;
+    movl    -4(%ebp), %ebx                                          # %ebx = pNewNode
+    movl    16(%ebp), %eax                                          # %eax = iNo
+    movl    %eax, 4(%ebx)                                           # pNewNode->data = iNo 
+
+    # if(NULL == *ppHead)
+    movl    8(%ebp), %ebx                                           # %ebx = ppHead
+    movl    (%ebx), %ecx                                            # %ebx = *ppHead
+    cmpl    $0, %ecx
+    jne     LABEL_INSERT_LAST_LIST_NOT_EMPTY
+    
+    # *ppHead = pNewNode;
+    movl    -4(%ebp), %eax                                          # %eax = pNewNode
+    movl    %eax, (%ebx)                                            # *ppHead = pNewNode
+
+    # *ppTail = pNewNode
+    movl    12(%ebp), %ecx                                          # %ecx = ppTail
+    movl    %eax, (%ecx)                                            # *ppTail = pNewNode
+
+    # (*ppTail)->pNext = *ppHead;
+    movl    8(%ebp), %ebx
+    movl    (%ebx), %eax                                            # %eax = *ppHead 
+    movl    12(%ebp), %ecx                                          # %ecx = ppTail
+    movl    %eax, 8(%ecx)                                           # (*ppTail)->pNext = *ppHead;
+
+
+    # (*ppHead)->pPrev = *ppTail;
+    movl    12(%ebp), %ebx
+    movl    (%ebx), %eax                                            # %eax = *ppTail
+    movl    8(%ebp), %ecx
+    movl    %eax, 8(%ecx)                                           # (*ppHead)->pPrev = *ppTail;
+
+    jmp     LABEL_INSERT_LAST_EXIT                                  # return  
+
+
+LABEL_INSERT_LAST_LIST_NOT_EMPTY:
+
+    # (*ppTail)->pNext = pNewNode;
+    movl    -4(%ebp), %eax                                          # %eax = pNewNode
+    movl    12(%ebp), %ebx                                          # %ebx = ppTail
+    movl    (%ebx), %ebx                                            # %ebx = *ppTail 
+    movl    %eax, 8(%ebx)                                           # (*ppTail)->pNext = pNewNode;
+
+    # pNewNode->pPrev = *ppTail;
+    movl    12(%ebp), %ebx                                          # %ebx = ppTail
+    movl    (%ebx), %eax                                            # %eax = *ppTail                                           
+    movl    -4(%ebp), %ecx                                          # %ecx = pNewNode
+    movl    %eax, (%ecx)                                            # pNewNode->pPrev = *ppTail;
+
+    # *ppTail = pNewNode;
+    movl    -4(%ebp), %eax                                          # %eax = pNewNode
+    movl    12(%ebp), %ebx                                          # %ebx = ppTail
+    movl    (%ebx), %ebx 
+    movl    %eax, (%ebx)                                            # *ppTail = pNewNode;
+
+    # (*ppTail)->pNext = *ppHead;
+    movl    8(%ebp), %ebx                                           # %ebx = ppHead
+    movl    (%ebx), %eax                                            # %eax = *ppHead
+    movl    12(%ebp), %ecx
+    movl    (%ecx), %ecx 
+    movl    %eax, 8(%ecx)                                           # (*ppTail)->pNext = *ppHead;
+
+    # (*ppHead)->pPrev = *ppTail;
+    movl    12(%ebp), %eax
+    movl    (%eax), %eax                                            # %eax = *ppTail
+    movl    8(%ebp), %ebx
+    movl    %eax, (%ebx)                                            # (*ppHead)->pPrev = *ppTail;
+
+
+
+LABEL_INSERT_LAST_EXIT:
     movl    %ebp, %esp
     popl    %ebp 
     ret 
@@ -336,11 +429,12 @@ InsertFirst:
 LABEL_MEM_ALLOCATED:
 
     # pNewNode->iData = iNo;
-    movl    $1, %eax                                    # iCounter
+    #movl    $1, %eax                                    # iCounter
     movl    -4(%ebp), %ebx                              # ebx = pNewNode
-    leal    (%ebx, %eax, 4), %ebx                       # ebx = pNewNode + 1 * sizeof(char*) (accesing the addr of second element of struct list)
+    #leal    (%ebx, %eax, 4), %ebx                       # ebx = pNewNode + 1 * sizeof(char*) (accesing the addr of second element of struct list)
+    
     movl    16(%ebp), %eax                              # eax = iNo 
-    movl    %eax, (%ebx)                                # pNewNode->iData = iNo
+    movl    %eax, 4(%ebx)                               # pNewNode->iData = iNo
 
     # if(NULL == *ppHead)
     movl    8(%ebp), %ebx
@@ -358,14 +452,14 @@ LABEL_MEM_ALLOCATED:
     movl    (%ebx), %eax                                # *ppHead 
     movl    12(%ebp), %edx
     movl    (%edx), %edx                                # *(ppTail)
-    movl    $2, %ecx
-    movl    %eax, (%edx, %ecx, 4)                       # (*ppTail)->pNext = *ppHead
-    
+    #movl    $2, %ecx
+    #movl    %eax, (%edx, %ecx, 4)                       # (*ppTail)->pNext = *ppHead
+    movl    %eax, 8(%edx)
 
     movl    (%ebx), %eax                                # (*ppHead)
-    movl    $0, %ecx        
-    movl    %edx, (%eax, %ecx, 4)                       # (*ppHead)->pPrev = *ppTail
-
+    #movl    $0, %ecx        
+    #movl    %edx, (%eax, %ecx, 4)                       # (*ppHead)->pPrev = *ppTail
+    movl    %edx, (%eax)
 
     jmp     LABEL_INSERT_FIRST_EXIT                         
 
@@ -373,37 +467,40 @@ LABEL_MEM_ALLOCATED:
 
 LABEL_LIST_NOT_EMPTY:
     # pNewNode->pNext = *ppHead;  
-    movl    $2, %eax                                    # iCounter
+    #movl    $2, %eax                                    # iCounter
     movl    -4(%ebp), %ebx                              # ebx = pNewNode
-    leal    (%ebx, %eax, 4), %ebx                       # ebx = pNewNode->pNext
+    #leal    (%ebx, %eax, 4), %ebx                       # ebx = pNewNode->pNext
+    leal    8(%ebx), %ebx
     movl    8(%ebp), %eax                               # ppHead
     movl    (%eax), %eax                                # *ppHead
     movl    %eax, (%ebx)                                # pNewNode->pNext = *ppHead
 
     # (*ppHead)->pPrev = pNewNode;
-    movl    $0, %ecx                    
-    leal    (%eax, %ecx, 4), %ecx                       # ecx = (*ppHead)->pPrev
+    #movl    $0, %ecx                    
+    #leal    (%eax, %ecx, 4), %ecx                       # ecx = (*ppHead)->pPrev
+    leal    (%eax), %ecx
     movl    -4(%ebp), %edx                              # edx = pNewNode
     movl    %edx, (%ecx)                                # (*ppHead)->pPrev = pNewNode
 
     # *ppHead = pNewNode;
     movl    -4(%ebp), %edx                              # edx = pNewNode
     movl    8(%ebp), %eax                               # ppHead
-    #movl    (%eax), %eax                                # *ppHead
-    movl    %edx, (%eax)                                  # *ppHead = pNewNode
+    movl    %edx, (%eax)                                # *ppHead = pNewNode
 
     # (*ppTail)->pNext = *ppHead;
     movl    8(%ebp), %eax                               # ppHead
     movl    (%eax), %eax                                # *ppHead
     movl    12(%ebp), %ebx                              # ppTail
     movl    (%ebx), %ebx                                # *ppTail 
-    movl    $2, %ecx 
-    leal    (%ebx, %ecx, 4), %ecx                       # *ppTail->pNext
+    #movl    $2, %ecx 
+    #leal    (%ebx, %ecx, 4), %ecx                       # *ppTail->pNext
+    leal    8(%ebx), %ecx
     movl     %eax, (%ecx)                               # *ppTail->pNext = *ppHead
 
     # (*ppHead)->pPrev = *ppTail;
-    movl    $0, %ecx
-    leal    (%eax, %ecx, 4), %ecx                       # (*ppHead)->pPrev
+    #movl    $0, %ecx
+    #leal    (%eax, %ecx, 4), %ecx                       # (*ppHead)->pPrev
+    leal    (%eax), %ecx
     movl    %ebx, (%ecx)                                # (*ppHead)->pPrev = *ppTail
 
 
@@ -594,26 +691,27 @@ Display:
 
 LABEL_DISPLAY_LIST:
     # printf("<-|%d|->", pHead->iData);
-    movl    8(%ebp), %ebx               # pHead 
-    movl    $1, %eax
-    movl    (%ebx, %eax, 4), %eax                       # pHead->iData
-    movl    $msg_print_arrow_data, (%esp)               # 
-    movl    %eax, 4(%esp)   
+    #movl    $1, %eax
+    movl    8(%ebp), %ebx                               # ebx = pHead
+    #movl    (%ebx, %eax, 4), %eax                       # eax = pHead->data
+    movl    4(%ebx), %eax
+    movl    $msg_print_arrow_data, (%esp)
+    movl    %eax, 4(%esp)
     call    printf
 
-    # pHead = pHead->pNext;
-    movl    $2, %eax
-    movl    8(%ebp), %ebx                               # ebx = pHead 
-    movl    (%ebx, %eax, 4), %ecx                       # ecx = pHead->pNext
-    movl    %ecx, (%ebx)                                # pHead = pHead->pNext
+    #movl    $2, %eax 
+    movl    8(%ebp), %ebx                               # ebx = pHead
+    #movl    (%ebx, %eax, 4), %ecx                       # ecx = pHead->pNext
+    movl    8(%ebx), %ecx
+    movl    %ecx, 8(%ebp)                               
 
-    # while(pHead!=pTail->pNext);
-    movl    8(%ebp), %ebx 
-    movl    $2, %eax
-    movl    12(%ebp), %ecx                              # ecx = pTail 
-    movl    (%ecx, %eax, 4), %ecx                       # ecx = pTail->pNext
-    cmpl    %ecx, %ebx
+    #movl    $2, %eax
+    movl    12(%ebp), %edx
+    #movl    (%edx, %eax, 4), %edx                       # edx = pTail->pNext
+    movl    8(%edx), %edx
+    cmpl    %edx, %ecx
     jne     LABEL_DISPLAY_LIST
+
 
     movl    $msg_print_new_line, (%esp)
     call    printf
