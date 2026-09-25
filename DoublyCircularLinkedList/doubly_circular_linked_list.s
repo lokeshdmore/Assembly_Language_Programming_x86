@@ -261,9 +261,21 @@ LABEL_CASE_4:
 
 LABEL_CASE_5:
 
-    movl    $msg_main_switch_print_data_found_at_pos, (%esp)
-    movl    %eax, 4(%esp)
-    call    printf
+    # Display(pFirst, pLast);
+    movl    -16(%ebp), %eax                                      # %eax = pFirst
+    movl    -20(%ebp), %edx                                      # %edx = pLast
+    movl    %eax, (%esp)
+    movl    %edx, 4(%esp)
+    call    Display
+
+    # ReverseDisplay(pFirst, pLast);
+    movl    -16(%ebp), %eax                                      # %eax = pFirst
+    movl    -20(%ebp), %edx                                      # %edx = pLast
+    movl    %eax, (%esp)
+    movl    %edx, 4(%esp)
+    call    ReverseDisplay
+
+
     jmp     LABEL_OUTSIDE_WHILE
 
 LABEL_CASE_6:
@@ -345,6 +357,7 @@ LABEL_INSERT_LAST_MEM_ALLOCATED:
     movl    8(%ebp), %ebx
     movl    (%ebx), %eax                                            # %eax = *ppHead 
     movl    12(%ebp), %ecx                                          # %ecx = ppTail
+    movl    (%ecx), %ecx                                            # %ecx = *ppTail
     movl    %eax, 8(%ecx)                                           # (*ppTail)->pNext = *ppHead;
 
 
@@ -352,7 +365,8 @@ LABEL_INSERT_LAST_MEM_ALLOCATED:
     movl    12(%ebp), %ebx
     movl    (%ebx), %eax                                            # %eax = *ppTail
     movl    8(%ebp), %ecx
-    movl    %eax, 8(%ecx)                                           # (*ppHead)->pPrev = *ppTail;
+    movl    (%ecx), %ecx                                            # %ecx = *ppHead 
+    movl    %eax, (%ecx)                                           # (*ppHead)->pPrev = *ppTail;
 
     jmp     LABEL_INSERT_LAST_EXIT                                  # return  
 
@@ -374,7 +388,7 @@ LABEL_INSERT_LAST_LIST_NOT_EMPTY:
     # *ppTail = pNewNode;
     movl    -4(%ebp), %eax                                          # %eax = pNewNode
     movl    12(%ebp), %ebx                                          # %ebx = ppTail
-    movl    (%ebx), %ebx 
+    #movl    (%ebx), %ebx 
     movl    %eax, (%ebx)                                            # *ppTail = pNewNode;
 
     # (*ppTail)->pNext = *ppHead;
@@ -388,6 +402,7 @@ LABEL_INSERT_LAST_LIST_NOT_EMPTY:
     movl    12(%ebp), %eax
     movl    (%eax), %eax                                            # %eax = *ppTail
     movl    8(%ebp), %ebx
+    movl    (%ebx), %ebx                                            # %ebx = *ppHead
     movl    %eax, (%ebx)                                            # (*ppHead)->pPrev = *ppTail;
 
 
@@ -676,7 +691,7 @@ Display:
     pushl   %ebp
     movl    %esp, %ebp
 
-    subl    $16, %esp               # size of total no of argument + align with 16
+    subl    $16, %esp                   # size of total no of argument + align with 16
 
     movl    $msg_display_print_list, (%esp)
     call    printf
@@ -736,7 +751,44 @@ ReverseDisplay:
     pushl   %ebp
     movl    %esp, %ebp
 
+    subl    $16, %esp               # size of total no of argument + align with 16
 
+    movl    $msg_reverse_display_print_list, (%esp)
+    call    printf
+
+    movl    12(%ebp), %ebx               # %ebx = pTail
+    cmpl    $0, %ebx        
+    jne     LABEL_REVERSE_DISPLAY
+    movl    $msg_print_empty, (%esp)
+    call    printf 
+    jmp     LABEL_REVERSE_DISPLAY_EXIT
+
+LABEL_REVERSE_DISPLAY:
+    # printf("<-|%d|->", pTail->iData);
+    movl    12(%ebp), %ebx                              # ebx = pTail
+    movl    4(%ebx), %eax                               # %eax = pTail->iData
+    movl    $msg_print_arrow_data, (%esp)
+    movl    %eax, 4(%esp)
+    call    printf
+
+    # pTail = pTail->pPrev;
+    movl    12(%ebp), %ebx                              # ebx = pTail
+    movl    (%ebx), %ecx                                # %ecx = pTail->pPrev
+    movl    %ecx, (%ebx)                               
+
+    movl    12(%ebp), %ecx                              # %edx = pTail
+    movl    8(%ebp), %ebx
+    movl    (%ebx), %edx                                # pHead->pPrev 
+    #movl    (%edx), %ecx                               # %ecx = pTail->pPrev
+    cmpl    %edx, %ecx
+    jne     LABEL_REVERSE_DISPLAY
+
+
+    movl    $msg_print_new_line, (%esp)
+    call    printf
+
+
+LABEL_REVERSE_DISPLAY_EXIT:
     movl    %ebp, %esp    
     popl    %ebp 
     ret 
