@@ -160,7 +160,8 @@
                  }
                  while(1)
                  {
-                     printf("\n1.SearchFirstOccurance\n2.SearchLastOccurance\n3.SearchAllOccurances\n4.Back\n");
+                     printf(
+                           "\n1.SearchFirstOccurance\n2.SearchLastOccurance\n3.SearchAllOccurances\n4.Back\n");
                      printf("Enter your choice again:\t");
                      scanf("%d", &iChoice);
 
@@ -205,7 +206,6 @@
                           printf("Data found %d times\n", iNo);
                      }
                  }
-
                  break;
 
              case 4:
@@ -269,6 +269,8 @@
 
          pNewNode = (struct List *)malloc(sizeof(struct List));
          if(NULL == pNewNode)
+
+
          {
               printf("memory allocation FAILED\n");
               return;
