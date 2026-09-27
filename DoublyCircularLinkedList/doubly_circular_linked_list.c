@@ -160,8 +160,7 @@
                  }
                  while(1)
                  {
-                     printf(
-                           "\n1.SearchFirstOccurance\n2.SearchLastOccurance\n3.SearchAllOccurances\n4.Back\n");
+                     printf("\n1.SearchFirstOccurance\n2.SearchLastOccurance\n3.SearchAllOccurances\n4.Back\n");
                      printf("Enter your choice again:\t");
                      scanf("%d", &iChoice);
 
@@ -353,30 +352,30 @@
    {
        int iDelData;
 
-         if(NULL == *ppHead)
-             return -1;
+     if(NULL == *ppHead)
+         return -1;
 
-         iDelData = (*ppHead)->iData;
+     iDelData = (*ppHead)->iData;
 
-         if(*ppHead == *ppTail) // only single node present
-         {
-             (*ppHead)->pNext = NULL;
-             (*ppHead)->pPrev = NULL;
-             free(*ppHead);
-             *ppHead = NULL;
-             *ppTail = NULL;
-             return iDelData;
-         }
-
-         *ppHead = (*ppHead)->pNext;
-         (*ppTail)->pNext->pNext = NULL;
-         (*ppTail)->pNext->pPrev = NULL;
-         free((*ppTail)->pNext);
-
-         (*ppTail)->pNext = *ppHead;
-         (*ppHead)->pPrev = *ppTail;
-
+     if(*ppHead == *ppTail) // only single node present
+     {
+         (*ppHead)->pNext = NULL;
+         (*ppHead)->pPrev = NULL;
+         free(*ppHead);
+         *ppHead = NULL;
+         *ppTail = NULL;
          return iDelData;
+     }
+
+     *ppHead = (*ppHead)->pNext;
+     (*ppTail)->pNext->pNext = NULL;
+     (*ppTail)->pNext->pPrev = NULL;
+     free((*ppTail)->pNext);
+
+     (*ppTail)->pNext = *ppHead;
+     (*ppHead)->pPrev = *ppTail;
+
+     return iDelData;
    }
 
    int DeleteLast(struct List **ppHead, struct List **ppTail)

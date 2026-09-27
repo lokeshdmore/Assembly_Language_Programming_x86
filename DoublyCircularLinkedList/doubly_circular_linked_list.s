@@ -7,6 +7,7 @@
 
 .equ    NULL,             0         # equivalent to #define NULL 0
 .equ    struct_list_size, 12        # sizeof(struct list)
+
 /* ===================== READY ONLY DATA SECTION =================== */
 .section .rodata
 
@@ -146,8 +147,11 @@ LABEL_OUTSIDE_WHILE:
     je      LABEL_CASE_6
     jmp     LABEL_CASE_DEFAULT
 
+/* ---------------------------------------------------------------------------------------------------------------- */
+/*                                 ============== CASE 1 STARTS HERE ==============                                 */
+/* ---------------------------------------------------------------------------------------------------------------- */
 LABEL_CASE_1:
-    /* ----------- case 1 while starts here -------------- */
+/* ----------- case 1 while starts here -------------- */
 LABEL_CASE_1_WHILE:
     movl    $msg_main_switch_print_insert_list_menu,(%esp)              # printf("\n1.InsertFirst\n2.InsertLast\n3.InsertAtPosition\n4.Back\n");
     call    printf
@@ -240,11 +244,11 @@ LABEL_CASE_1_CASE_3:
     movl    %ebx, 12(%esp)
     call    InsertAtPosition                                # InsertAtPosition(&pFirst, &pLast, iNo, iPos);
 
-    /* ------- inside case 1, inside switch case ends here ------ */
+/* ------- inside case 1, inside switch case ends here ------ */
 
 LABEL_CASE_1_CASE_1_BREAK:
     # call to the display function here
-    movl    -16(%ebp), %eax                                     # Display(pFirst, pLast);
+    movl    -16(%ebp), %eax                                 # Display(pFirst, pLast);
     movl    -20(%ebp), %edx
     movl    %eax, (%esp)
     movl    %edx, 4(%esp)
@@ -252,36 +256,308 @@ LABEL_CASE_1_CASE_1_BREAK:
 
     jmp     LABEL_CASE_1_WHILE
 
-    /* ------------- case 1 while ends here -------------- */
+/* ------------- case 1 while ends here -------------- */
 
 LABEL_CASE_1_BREAK:
 
     jmp     LABEL_OUTSIDE_WHILE
 
+/* ---------------------------------------------------------------------------------------------------------------- */
+/*                                 ============== CASE 1 ENDS HERE ============== 
+/* ---------------------------------------------------------------------------------------------------------------- */
+
+/* ---------------------------------------------------------------------------------------------------------------- */
+/*                                 ============== CASE 2 STARTS HERE ============== 
+/* ---------------------------------------------------------------------------------------------------------------- */
 LABEL_CASE_2:
-    movl    $msg_main_switch_print_data_found_at_pos, (%esp)
-    movl    %eax, 4(%esp)
+    movl    -16(%ebp), %ebx                                         # %ebx = pFirst
+    cmpl    $0, %ebx                                    
+    jne     LABEL_CASE_2_LIST_NOT_EMPTY
+    movl    $msg_main_switch_case2_empty_list, (%esp)
     call    printf
     jmp     LABEL_OUTSIDE_WHILE
 
-LABEL_CASE_3:
+LABEL_CASE_2_LIST_NOT_EMPTY:
+LABEL_CASE_2_WHILE:
+    movl    $msg_main_switch_print_delete_list_menu, (%esp)                     # msg_main_switch_print_delete_list_menu
+    call    printf 
 
-    movl    $msg_main_switch_print_data_found_at_pos, (%esp)
+    movl    $msg_main_switch_enter_choice_again, (%esp)                         # printf("Enter your choice again:\t");
+    call    printf
+
+    leal    -12(%ebp), %ebx                                                     # scanf("%d", &iChoice);
+    movl    $msg_main_scan_no, (%esp)
+    movl    %ebx, 4(%esp)
+    call    scanf
+
+    movl    -12(%ebp), %eax                                                     # if(iChoice == 4)
+    cmpl    $4, %eax
+    jne     LABEL_CASE_2_INSIDE_SWITCH_CASE
+    jmp     LABEL_CASE_2_BREAK
+
+LABEL_CASE_2_INSIDE_SWITCH_CASE:
+    movl    -12(%ebp), %eax
+    cmpl    $1, %eax
+    je      LABEL_CASE_2_CASE_1
+    cmpl    $2, %eax
+    je      LABEL_CASE_2_CASE_2
+    cmpl    $3, %eax
+    je      LABEL_CASE_2_CASE_3
+    jmp     LABEL_CASE_2_DEFAULT_BREAK
+
+LABEL_CASE_2_CASE_1:
+    # DeleteFirst(&pFirst, &pLast);                        
+    leal    -16(%ebp), %eax         
+    leal    -20(%ebp), %edx
+    movl    %eax, (%esp)
+    movl    %edx, 4(%esp)
+    call    DeleteFirst                                     # DeleteFirst(&pFirst, &pLast);
+    movl    %eax, -4(%ebp)
+    jmp     LABEL_CASE_2_INSIDE_SWITCH_BREAK
+
+LABEL_CASE_2_CASE_2:    
+    # DeleteLast(&pFirst, &pLast);                        
+    leal    -16(%ebp), %eax         
+    leal    -20(%ebp), %edx
+    movl    %eax, (%esp)
+    movl    %edx, 4(%esp)
+    call    DeleteLast                                     # DeleteLast(&pFirst, &pLast);
+    movl    %eax, -4(%ebp)
+    jmp     LABEL_CASE_2_INSIDE_SWITCH_BREAK
+
+
+LABEL_CASE_2_CASE_3:
+    movl    $msg_main_switch_enter_position, (%esp)         # printf("Enter position:\t");
+    call    printf 
+
+    leal    -8(%ebp), %ebx                                  # scanf("%d", &iPos);
+    movl    $msg_main_scan_no, (%esp)
+    movl    %ebx, 4(%esp)
+    call    scanf 
+
+    # DeleteAtPosition(&pFirst, &pLast, iPos);
+    leal    -16(%ebp), %eax                                 # %eax = &pFirst        
+    leal    -20(%ebp), %edx                                 # %edx = &pLast                  
+    movl    -8(%ebp), %ebx                                  # %ebx = iPos
+    movl    %eax, (%esp)
+    movl    %edx, 4(%esp)
+    movl    %ebx, 8(%esp)
+    call    DeleteAtPosition                                # DeleteAtPosition(&pFirst, &pLast, iPos);
+    movl    %eax, -4(%ebp)
+    jmp     LABEL_CASE_2_INSIDE_SWITCH_BREAK
+
+LABEL_CASE_2_DEFAULT_BREAK:
+    movl    $msg_main_switch_enter_valid_choice, (%esp)
+    call    printf
+    movl    $4, -12(%ebp)
+
+LABEL_CASE_2_INSIDE_SWITCH_BREAK:
+    # if(-1 == iNo)
+    movl    -4(%ebp), %eax
+    cmpl    $(-1), %eax
+    jne     LABEL_CASE2_ELSE_IF
+    
+    movl    $msg_main_switch_empty_list, (%esp)
+    call    printf
+    jmp     LABEL_CASE_2_INSIDE_WHILE_BREAK
+
+LABEL_CASE2_ELSE_IF:
+    # else if(iChoice != 4 && iNo != -2)
+    movl    -12(%ebp), %eax                                 # %eax = iChoice
+    cmpl    $4, %eax
+    je      LABEL_CASE_2_INSIDE_WHILE_BREAK
+    movl    -4(%ebp), %eax                                  # %eax = iNo
+    cmpl    $(-2), %eax
+    je      LABEL_CASE_2_INSIDE_WHILE_BREAK
+    movl    $msg_main_switch_print_delete_data, (%esp)      # printf("Deleted data is %d\n", iNo);
     movl    %eax, 4(%esp)
     call    printf
-    jmp     LABEL_OUTSIDE_WHILE                                 # break 
+
+    # Display(pFirst, pLast);
+    movl    -16(%ebp), %eax                                 
+    movl    -20(%ebp), %edx
+    movl    %eax, (%esp)
+    movl    %edx, 4(%esp)
+    call    Display                                         # Display(pFirst, pLast);
+
+LABEL_CASE_2_INSIDE_WHILE_BREAK:
+    jmp     LABEL_CASE_2_WHILE
+
+LABEL_CASE_2_BREAK:
+    jmp     LABEL_OUTSIDE_WHILE
+
+/* ---------------------------------------------------------------------------------------------------------------- */
+/*                                 ============== CASE 2 ENDS HERE ============== 
+/* ---------------------------------------------------------------------------------------------------------------- */
+
+/* ---------------------------------------------------------------------------------------------------------------- */
+/*                                 ============== CASE 3 STARTS HERE ============== 
+/* ---------------------------------------------------------------------------------------------------------------- */
+
+LABEL_CASE_3:
+    movl    -16(%ebp), %eax                                                     # %eax = pFirst
+    cmpl    $0, %eax                                    
+    jne     LABEL_CASE_3_LIST_NOT_EMPTY
+    movl    $msg_main_switch_case3_empty_list, (%esp)
+    call    printf
+    jmp     LABEL_CASE_3_BREAK
+
+LABEL_CASE_3_LIST_NOT_EMPTY:
+LABEL_CASE_3_WHILE:
+    movl    $msg_main_switch_print_search_list_menu, (%esp)                     # msg_main_switch_print_search_list_menu
+    call    printf 
+
+    movl    $msg_main_switch_enter_choice_again, (%esp)                         # printf("Enter your choice again:\t");
+    call    printf
+
+    leal    -12(%ebp), %ebx                                                     # scanf("%d", &iChoice);
+    movl    $msg_main_scan_no, (%esp)
+    movl    %ebx, 4(%esp)
+    call    scanf
+
+    movl    -12(%ebp), %eax                              # if(iChoice == 4)
+    
+    cmpl    $4, %eax
+    je      LABEL_CASE_3_BREAK
+
+    cmpl    $0, %eax
+    jle     LABEL_CASE_3_VALID_CHOICE_IF
+    
+    cmpl    $3, %eax
+    jle     LABEL_CASE_3_VALID_CHOICE_ELSE
+
+LABEL_CASE_3_VALID_CHOICE_IF:
+    movl    $msg_main_switch_enter_valid_choice, (%esp)
+    call    printf
+    jmp     LABEL_CASE_3_WHILE
+
+LABEL_CASE_3_VALID_CHOICE_ELSE:
+    # call to the display function here
+    movl    -16(%ebp), %eax                              # Display(pFirst, pLast);
+    movl    -20(%ebp), %edx
+    movl    %eax, (%esp)
+    movl    %edx, 4(%esp)
+    call    Display
+
+    movl    $msg_main_switch_enter_data_to_search, (%esp)   # printf("Enter data to be search:\t");
+    call    printf
+
+    leal    -4(%ebp), %ebx                               # scanf("%d", &iNo);
+    movl    $msg_main_scan_no, (%esp)
+    movl    %ebx, 4(%esp)
+    call    scanf
+
+LABEL_CASE_3_INSIDE_SWITCH_CASE:
+    movl    -12(%ebp), %eax
+    cmpl    $1, %eax
+    je      LABEL_CASE_3_CASE_1
+    cmpl    $2, %eax
+    je      LABEL_CASE_3_CASE_2
+    cmpl    $3, %eax
+    je      LABEL_CASE_3_CASE_3
+    jmp     LABEL_CASE_3_WHILE
+
+LABEL_CASE_3_CASE_1:
+    # iNo = SearchFirstOccurance(pFirst, pLast, iNo);
+    movl    -16(%ebp), %eax                              # %eax = pFirst
+    movl    -20(%ebp), %edx                              # %edx = pLast
+    movl    -4(%ebp), %ecx                               # %ecx = iNo
+    movl    %eax, (%esp)
+    movl    %edx, 4(%esp)
+    movl    %ecx, 8(%esp)
+    call    SearchFirstOccurance
+    movl    %eax, -4(%ebp)                               # iNo = SearchFirstOccurance(pFirst, pLast, iNo);    
+    cmpl    $(-1), %eax
+    jne     LABEL_CASE_3_CASE_1_ELSE_IF
+    movl    $msg_main_switch_empty_list, (%esp)
+    call    printf
+    jmp     LABEL_CASE_3_INSIDE_SWITCH_BREAK
+
+LABEL_CASE_3_CASE_1_ELSE_IF:
+    cmpl    $(-2), %eax
+    jne     LABEL_CASE_3_CASE_1_ELSE
+    movl    $msg_main_switch_print_data_not_found, (%esp)
+    call    printf
+    jmp     LABEL_CASE_3_INSIDE_SWITCH_BREAK
+
+LABEL_CASE_3_CASE_1_ELSE:
+    movl    -4(%ebp), %eax
+    movl    $msg_main_switch_print_data_found_at_pos, (%esp)
+    movl    %eax, 4(%esp)
+    call    printf 
+    jmp     LABEL_CASE_3_INSIDE_SWITCH_BREAK
+
+LABEL_CASE_3_CASE_2:    
+    # iNo = SearchLastOccurance(pFirst, pLast, iNo);
+    movl    -16(%ebp), %eax                              # %eax = pFirst
+    movl    -20(%ebp), %edx                              # %edx = pLast
+    movl    -4(%ebp), %ecx                               # %ecx = iNo
+    movl    %eax, (%esp)
+    movl    %edx, 4(%esp)
+    movl    %ecx, 8(%esp)
+    call    SearchLastOccurance
+    movl    %eax, -4(%ebp)                               # iNo = SearchLastOccurance(pFirst, pLast, iNo);
+    cmpl    $(-1), %eax
+    jne     LABEL_CASE_3_CASE_2_ELSE_IF
+    movl    $msg_main_switch_empty_list, (%esp)
+    call    printf
+    jmp     LABEL_CASE_3_INSIDE_SWITCH_BREAK
+
+LABEL_CASE_3_CASE_2_ELSE_IF:
+    cmpl    $(-2), %eax
+    jne     LABEL_CASE_3_CASE_2_ELSE
+    movl    $msg_main_switch_print_data_not_found, (%esp)
+    call    printf
+    jmp     LABEL_CASE_3_INSIDE_SWITCH_BREAK
+
+LABEL_CASE_3_CASE_2_ELSE:
+    movl    -4(%ebp), %eax
+    movl    $msg_main_switch_print_data_found_at_pos, (%esp)
+    movl    %eax, 4(%esp)
+    call    printf 
+    jmp     LABEL_CASE_3_INSIDE_SWITCH_BREAK
+
+LABEL_CASE_3_CASE_3:
+    # iNo = SearchAllOccurances(pFirst, pLast, iNo);
+    movl    -16(%ebp), %eax                              # %eax = pFirst
+    movl    -20(%ebp), %edx                              # %edx = pLast
+    movl    -4(%ebp), %ecx                               # %ecx = iNo
+    movl    %eax, (%esp)
+    movl    %edx, 4(%esp)
+    movl    %ecx, 8(%esp)
+    call    SearchAllOccurances
+    movl    %eax, -4(%ebp)                               # iNo = SearchAllOccurances(pFirst, pLast, iNo);
+
+    movl    $msg_main_switch_print_data_found_times, (%esp)
+    movl    -4(%ebp), %eax
+    movl    %eax, 4(%esp)
+    call    printf
+
+LABEL_CASE_3_INSIDE_SWITCH_BREAK:
+    jmp     LABEL_CASE_3_WHILE
+
+LABEL_CASE_3_BREAK:
+    jmp     LABEL_OUTSIDE_WHILE                          # break 
+
+/* ---------------------------------------------------------------------------------------------------------------- */
+/*                                 ============== CASE 3 ENDS HERE ============== 
+/* ---------------------------------------------------------------------------------------------------------------- */
+
+/* ---------------------------------------------------------------------------------------------------------------- */
+/*                                 ============== CASE 4 STARTS HERE ============== 
+/* ---------------------------------------------------------------------------------------------------------------- */
 
 LABEL_CASE_4:
     # Display(pFirst, pLast);
-    movl    -16(%ebp), %eax                                     # %eax = pFirst
-    movl    -20(%ebp), %edx                                     # %edx = pLast
+    movl    -16(%ebp), %eax                              # %eax = pFirst
+    movl    -20(%ebp), %edx                              # %edx = pLast
     movl    %eax, (%esp)
     movl    %edx, 4(%esp)
     call    Display
 
     # iNo = CountNode(pFirst, pLast);
-    movl    -16(%ebp), %eax                                     # %eax = pFirst
-    movl    -20(%ebp), %edx                                     # %edx = pLast
+    movl    -16(%ebp), %eax                              # %eax = pFirst
+    movl    -20(%ebp), %edx                              # %edx = pLast
     movl    %eax, (%esp)
     movl    %edx, 4(%esp)
     call    CountNode
@@ -293,20 +569,28 @@ LABEL_CASE_4:
     movl    %eax, 4(%esp)
     call    printf
 
-    jmp     LABEL_OUTSIDE_WHILE                                 # break
+    jmp     LABEL_OUTSIDE_WHILE                          # break
+
+/* ---------------------------------------------------------------------------------------------------------------- */
+/*                                 ============== CASE 4 ENDS HERE ============== 
+/* ---------------------------------------------------------------------------------------------------------------- */
+
+/* ---------------------------------------------------------------------------------------------------------------- */
+/*                                 ============== CASE 5 STARTS HERE ============== 
+/* ---------------------------------------------------------------------------------------------------------------- */
 
 LABEL_CASE_5:
 
     # Display(pFirst, pLast);
-    movl    -16(%ebp), %eax                                     # %eax = pFirst
-    movl    -20(%ebp), %edx                                     # %edx = pLast
+    movl    -16(%ebp), %eax                              # %eax = pFirst
+    movl    -20(%ebp), %edx                              # %edx = pLast
     movl    %eax, (%esp)
     movl    %edx, 4(%esp)
     call    Display
 
     # ReverseDisplay(pFirst, pLast);
-    movl    -16(%ebp), %eax                                     # %eax = pFirst
-    movl    -20(%ebp), %edx                                     # %edx = pLast
+    movl    -16(%ebp), %eax                              # %eax = pFirst
+    movl    -20(%ebp), %edx                              # %edx = pLast
     movl    %eax, (%esp)
     movl    %edx, 4(%esp)
     call    ReverseDisplay
@@ -314,10 +598,17 @@ LABEL_CASE_5:
 
     jmp     LABEL_OUTSIDE_WHILE
 
+/* ---------------------------------------------------------------------------------------------------------------- */
+/*                                 ============== CASE 5 ENDS HERE ============== 
+/* ---------------------------------------------------------------------------------------------------------------- */
+
+/* ---------------------------------------------------------------------------------------------------------------- */
+/*                                 ============== CASE 6 STARTS HERE ============== 
+/* ---------------------------------------------------------------------------------------------------------------- */
 LABEL_CASE_6:
     # Display(pFirst, pLast);
-    movl    -16(%ebp), %eax                                     # %eax = pFirst
-    movl    -20(%ebp), %edx                                     # %edx = pLast
+    movl    -16(%ebp), %eax                              # %eax = pFirst
+    movl    -20(%ebp), %edx                              # %edx = pLast
     movl    %eax, (%esp)
     movl    %edx, 4(%esp)
     call    Display
@@ -326,8 +617,8 @@ LABEL_CASE_6:
     movl    -16(%ebp), %ecx 
     cmpl    $0, %ecx 
     je      LABEL_CASE_6_BREAK
-    leal    -16(%ebp), %eax                                     # %eax = &pFirst
-    leal    -20(%ebp), %edx                                     # %edx = &pLast
+    leal    -16(%ebp), %eax                              # %eax = &pFirst
+    leal    -20(%ebp), %edx                              # %edx = &pLast
     movl    %eax, (%esp)
     movl    %edx, 4(%esp)
     call    DeleteAllNodes
@@ -337,18 +628,22 @@ LABEL_CASE_6_BREAK:
     call    printf
 
     jmp     LABEL_MAIN_EXIT
+/* ---------------------------------------------------------------------------------------------------------------- */
+/*                                 ============== CASE 6 ENDS HERE ============== 
+/* ---------------------------------------------------------------------------------------------------------------- */
 
+/* ---------------------------------------------------------------------------------------------------------------- */
+/*                            ============== CASE DEFAULT STARTS HERE ============== 
+/* ---------------------------------------------------------------------------------------------------------------- */
 LABEL_CASE_DEFAULT:
-
-    movl    $msg_main_switch_print_data_found_at_pos, (%esp)
-    movl    %eax, 4(%esp)
+    # printf("Enter valid choice.\n");
+    movl    $msg_main_switch_enter_valid_choice, (%esp)
     call    printf
     jmp     LABEL_OUTSIDE_WHILE
 
-
-    /* ++++++++++++ switch case ends here +++++++++++++++ */                           
-
-    #loop    LABEL_OUTSIDE_WHILE
+/* ---------------------------------------------------------------------------------------------------------------- */
+/*                             ============== CASE DEFAULT ENDS HERE ============== 
+/* ---------------------------------------------------------------------------------------------------------------- */
 
 
 /* -------------------------- while loop ends here ------------------ */
@@ -371,93 +666,93 @@ InsertLast:
     pushl   %ebp
     movl    %esp, %ebp
 
-    subl    $16, %esp                                               # variable + no of argument + align with 16
+    subl    $16, %esp                                   # variable + no of argument + align with 16
 
-    movl    $NULL, -4(%ebp)                                         # struct list *pNewNode = NULL 
+    movl    $NULL, -4(%ebp)                             # struct list *pNewNode = NULL 
 
     # pNewNode = (struct List *)malloc(sizeof(struct List));
     movl    $struct_list_size, (%esp)
-    call    malloc                                                  # malloc(sizeof(struct list))
-    movl    %eax, -4(%ebp)                                          # pNewNode = malloc(struct list size)
+    call    malloc                                      # malloc(sizeof(struct list))
+    movl    %eax, -4(%ebp)                              # pNewNode = malloc(struct list size)
     
     # if(NULL == pNewNode)
     cmpl    $0, %eax 
     jne     LABEL_INSERT_LAST_MEM_ALLOCATED
-    movl    $msg_print_mem_failed, (%esp)                           # printf("memory allocation FAILED\n");
+    movl    $msg_print_mem_failed, (%esp)               # printf("memory allocation FAILED\n");
     call    printf
     jmp     LABEL_INSERT_LAST_EXIT
 
 LABEL_INSERT_LAST_MEM_ALLOCATED:
     # pNewNode->iData = iNo;
-    movl    -4(%ebp), %ebx                                          # %ebx = pNewNode
-    movl    16(%ebp), %eax                                          # %eax = iNo
-    movl    %eax, 4(%ebx)                                           # pNewNode->data = iNo 
+    movl    -4(%ebp), %ebx                              # %ebx = pNewNode
+    movl    16(%ebp), %eax                              # %eax = iNo
+    movl    %eax, 4(%ebx)                               # pNewNode->data = iNo 
 
     # if(NULL == *ppHead)
-    movl    8(%ebp), %ebx                                           # %ebx = ppHead
-    movl    (%ebx), %ecx                                            # %ebx = *ppHead
+    movl    8(%ebp), %ebx                               # %ebx = ppHead
+    movl    (%ebx), %ecx                                # %ebx = *ppHead
     cmpl    $0, %ecx
     jne     LABEL_INSERT_LAST_LIST_NOT_EMPTY
     
     # *ppHead = pNewNode;
-    movl    -4(%ebp), %eax                                          # %eax = pNewNode
-    movl    %eax, (%ebx)                                            # *ppHead = pNewNode
+    movl    -4(%ebp), %eax                              # %eax = pNewNode
+    movl    %eax, (%ebx)                                # *ppHead = pNewNode
 
     # *ppTail = pNewNode
-    movl    12(%ebp), %ecx                                          # %ecx = ppTail
-    movl    %eax, (%ecx)                                            # *ppTail = pNewNode
+    movl    12(%ebp), %ecx                              # %ecx = ppTail
+    movl    %eax, (%ecx)                                # *ppTail = pNewNode
 
     # (*ppTail)->pNext = *ppHead;
     movl    8(%ebp), %ebx
-    movl    (%ebx), %eax                                            # %eax = *ppHead 
-    movl    12(%ebp), %ecx                                          # %ecx = ppTail
-    movl    (%ecx), %ecx                                            # %ecx = *ppTail
-    movl    %eax, 8(%ecx)                                           # (*ppTail)->pNext = *ppHead;
+    movl    (%ebx), %eax                                # %eax = *ppHead 
+    movl    12(%ebp), %ecx                              # %ecx = ppTail
+    movl    (%ecx), %ecx                                # %ecx = *ppTail
+    movl    %eax, 8(%ecx)                               # (*ppTail)->pNext = *ppHead;
 
 
     # (*ppHead)->pPrev = *ppTail;
     movl    12(%ebp), %ebx
-    movl    (%ebx), %eax                                            # %eax = *ppTail
+    movl    (%ebx), %eax                                # %eax = *ppTail
     movl    8(%ebp), %ecx
-    movl    (%ecx), %ecx                                            # %ecx = *ppHead 
-    movl    %eax, (%ecx)                                           # (*ppHead)->pPrev = *ppTail;
+    movl    (%ecx), %ecx                                # %ecx = *ppHead 
+    movl    %eax, (%ecx)                                # (*ppHead)->pPrev = *ppTail;
 
-    jmp     LABEL_INSERT_LAST_EXIT                                  # return  
+    jmp     LABEL_INSERT_LAST_EXIT                      # return  
 
 
 LABEL_INSERT_LAST_LIST_NOT_EMPTY:
 
     # (*ppTail)->pNext = pNewNode;
-    movl    -4(%ebp), %eax                                          # %eax = pNewNode
-    movl    12(%ebp), %ebx                                          # %ebx = ppTail
-    movl    (%ebx), %ebx                                            # %ebx = *ppTail 
-    movl    %eax, 8(%ebx)                                           # (*ppTail)->pNext = pNewNode;
+    movl    -4(%ebp), %eax                              # %eax = pNewNode
+    movl    12(%ebp), %ebx                              # %ebx = ppTail
+    movl    (%ebx), %ebx                                # %ebx = *ppTail 
+    movl    %eax, 8(%ebx)                               # (*ppTail)->pNext = pNewNode;
 
     # pNewNode->pPrev = *ppTail;
-    movl    12(%ebp), %ebx                                          # %ebx = ppTail
-    movl    (%ebx), %eax                                            # %eax = *ppTail                                           
-    movl    -4(%ebp), %ecx                                          # %ecx = pNewNode
-    movl    %eax, (%ecx)                                            # pNewNode->pPrev = *ppTail;
+    movl    12(%ebp), %ebx                              # %ebx = ppTail
+    movl    (%ebx), %eax                                # %eax = *ppTail                                           
+    movl    -4(%ebp), %ecx                              # %ecx = pNewNode
+    movl    %eax, (%ecx)                                # pNewNode->pPrev = *ppTail;
 
     # *ppTail = pNewNode;
-    movl    -4(%ebp), %eax                                          # %eax = pNewNode
-    movl    12(%ebp), %ebx                                          # %ebx = ppTail
+    movl    -4(%ebp), %eax                              # %eax = pNewNode
+    movl    12(%ebp), %ebx                              # %ebx = ppTail
     #movl    (%ebx), %ebx 
-    movl    %eax, (%ebx)                                            # *ppTail = pNewNode;
+    movl    %eax, (%ebx)                                # *ppTail = pNewNode;
 
     # (*ppTail)->pNext = *ppHead;
-    movl    8(%ebp), %ebx                                           # %ebx = ppHead
-    movl    (%ebx), %eax                                            # %eax = *ppHead
+    movl    8(%ebp), %ebx                               # %ebx = ppHead
+    movl    (%ebx), %eax                                # %eax = *ppHead
     movl    12(%ebp), %ecx
     movl    (%ecx), %ecx 
-    movl    %eax, 8(%ecx)                                           # (*ppTail)->pNext = *ppHead;
+    movl    %eax, 8(%ecx)                               # (*ppTail)->pNext = *ppHead;
 
     # (*ppHead)->pPrev = *ppTail;
     movl    12(%ebp), %eax
-    movl    (%eax), %eax                                            # %eax = *ppTail
+    movl    (%eax), %eax                                # %eax = *ppTail
     movl    8(%ebp), %ebx
-    movl    (%ebx), %ebx                                            # %ebx = *ppHead
-    movl    %eax, (%ebx)                                            # (*ppHead)->pPrev = *ppTail;
+    movl    (%ebx), %ebx                                # %ebx = *ppHead
+    movl    %eax, (%ebx)                                # (*ppHead)->pPrev = *ppTail;
 
 
 
@@ -498,9 +793,9 @@ InsertFirst:
 LABEL_MEM_ALLOCATED:
 
     # pNewNode->iData = iNo;
-    #movl    $1, %eax                                    # iCounter
+    #movl    $1, %eax                                   # iCounter
     movl    -4(%ebp), %ebx                              # ebx = pNewNode
-    #leal    (%ebx, %eax, 4), %ebx                       # ebx = pNewNode + 1 * sizeof(char*) (accesing the addr of second element of struct list)
+    #leal    (%ebx, %eax, 4), %ebx                      # ebx = pNewNode + 1 * sizeof(char*) (accesing the addr of second element of struct list)
     
     movl    16(%ebp), %eax                              # eax = iNo 
     movl    %eax, 4(%ebx)                               # pNewNode->iData = iNo
@@ -522,12 +817,12 @@ LABEL_MEM_ALLOCATED:
     movl    12(%ebp), %edx
     movl    (%edx), %edx                                # *(ppTail)
     #movl    $2, %ecx
-    #movl    %eax, (%edx, %ecx, 4)                       # (*ppTail)->pNext = *ppHead
+    #movl    %eax, (%edx, %ecx, 4)                      # (*ppTail)->pNext = *ppHead
     movl    %eax, 8(%edx)
 
     movl    (%ebx), %eax                                # (*ppHead)
     #movl    $0, %ecx        
-    #movl    %edx, (%eax, %ecx, 4)                       # (*ppHead)->pPrev = *ppTail
+    #movl    %edx, (%eax, %ecx, 4)                      # (*ppHead)->pPrev = *ppTail
     movl    %edx, (%eax)
 
     jmp     LABEL_INSERT_FIRST_EXIT                         
@@ -536,9 +831,9 @@ LABEL_MEM_ALLOCATED:
 
 LABEL_LIST_NOT_EMPTY:
     # pNewNode->pNext = *ppHead;  
-    #movl    $2, %eax                                    # iCounter
+    #movl    $2, %eax                                   # iCounter
     movl    -4(%ebp), %ebx                              # ebx = pNewNode
-    #leal    (%ebx, %eax, 4), %ebx                       # ebx = pNewNode->pNext
+    #leal    (%ebx, %eax, 4), %ebx                      # ebx = pNewNode->pNext
     leal    8(%ebx), %ebx
     movl    8(%ebp), %eax                               # ppHead
     movl    (%eax), %eax                                # *ppHead
@@ -546,7 +841,7 @@ LABEL_LIST_NOT_EMPTY:
 
     # (*ppHead)->pPrev = pNewNode;
     #movl    $0, %ecx                    
-    #leal    (%eax, %ecx, 4), %ecx                       # ecx = (*ppHead)->pPrev
+    #leal    (%eax, %ecx, 4), %ecx                      # ecx = (*ppHead)->pPrev
     leal    (%eax), %ecx
     movl    -4(%ebp), %edx                              # edx = pNewNode
     movl    %edx, (%ecx)                                # (*ppHead)->pPrev = pNewNode
@@ -562,13 +857,13 @@ LABEL_LIST_NOT_EMPTY:
     movl    12(%ebp), %ebx                              # ppTail
     movl    (%ebx), %ebx                                # *ppTail 
     #movl    $2, %ecx 
-    #leal    (%ebx, %ecx, 4), %ecx                       # *ppTail->pNext
+    #leal    (%ebx, %ecx, 4), %ecx                      # *ppTail->pNext
     leal    8(%ebx), %ecx
     movl     %eax, (%ecx)                               # *ppTail->pNext = *ppHead
 
     # (*ppHead)->pPrev = *ppTail;
     #movl    $0, %ecx
-    #leal    (%eax, %ecx, 4), %ecx                       # (*ppHead)->pPrev
+    #leal    (%eax, %ecx, 4), %ecx                      # (*ppHead)->pPrev
     leal    (%eax), %ecx
     movl    %ebx, (%ecx)                                # (*ppHead)->pPrev = *ppTail
 
@@ -591,28 +886,28 @@ InsertAtPosition:
     pushl   %ebp
     movl    %esp, %ebp
     
-    subl    $48, %esp                               # no of argument + variable + align to 16
+    subl    $48, %esp                                   # no of argument + variable + align to 16
 
-    movl    $NULL, -4(%ebp)                         # struct List *pNewNode = NULL
-    movl    $NULL, -8(%ebp)                         # struct List *pTemp    = NULL 
+    movl    $NULL, -4(%ebp)                             # struct List *pNewNode = NULL
+    movl    $NULL, -8(%ebp)                             # struct List *pTemp    = NULL 
 
     #iCount = CountNode(*ppHead, *ppTail);
-    movl    8(%ebp), %ebx                           # %ebx = pHead 
-    movl    (%ebx), %ebx                            # %ebx = *pHead
-    movl    12(%ebp), %ecx                          # %ecx = pTail
-    movl    (%ecx), %ecx                            # %ecx = *pTail 
+    movl    8(%ebp), %ebx                               # %ebx = pHead 
+    movl    (%ebx), %ebx                                # %ebx = *pHead
+    movl    12(%ebp), %ecx                              # %ecx = pTail
+    movl    (%ecx), %ecx                                # %ecx = *pTail 
     movl    %ebx, (%esp)    
     movl    %ecx, 4(%esp)
     call    CountNode
-    movl    %eax, -12(%ebp)                         # iCount = CountNode(*ppHead, *ppTail);
+    movl    %eax, -12(%ebp)                             # iCount = CountNode(*ppHead, *ppTail);
 
     # if(iPos <= 0 || iPos > iCount + 1)
-    movl    20(%ebp), %eax                          # %eax = iPos 
+    movl    20(%ebp), %eax                              # %eax = iPos 
     cmpl    $0, %eax
     jle     LABEL_INSERT_INVALID_POSITION_IF
-    movl    -12(%ebp), %ecx                         # %ecx = iCount
-    addl    $1, %ecx                                # %ecx = iCount + 1 
-    cmpl    %ecx, %eax                              # if(iPos > iCount+1)
+    movl    -12(%ebp), %ecx                             # %ecx = iCount
+    addl    $1, %ecx                                    # %ecx = iCount + 1 
+    cmpl    %ecx, %eax                                  # if(iPos > iCount+1)
     jle     LABEL_INSERT_POSITION_VALID
 
 LABEL_INSERT_INVALID_POSITION_IF:
@@ -621,12 +916,12 @@ LABEL_INSERT_INVALID_POSITION_IF:
     jmp     LABEL_INSERT_POSITION_EXIT
 
 LABEL_INSERT_POSITION_VALID:
-    movl    20(%ebp), %eax                          # %eax = iPos
+    movl    20(%ebp), %eax                              # %eax = iPos
     cmpl    $1, %eax
     jne     LABEL_INSERT_NOT_POS_1
-    movl    8(%ebp), %eax                           # %eax = ppHead
-    movl    12(%ebp), %edx                          # %edx = ppTail
-    movl    16(%ebp), %ecx                          # %ecx = iNo
+    movl    8(%ebp), %eax                               # %eax = ppHead
+    movl    12(%ebp), %edx                              # %edx = ppTail
+    movl    16(%ebp), %ecx                              # %ecx = iNo
     movl    %eax, (%esp)
     movl    %edx, 4(%esp)
     movl    %ecx, 8(%esp)
@@ -634,14 +929,14 @@ LABEL_INSERT_POSITION_VALID:
     jmp     LABEL_INSERT_POSITION_EXIT
 
 LABEL_INSERT_NOT_POS_1:
-    movl    -12(%ebp), %eax                         # iCount 
-    addl    $1, %eax                                # %eax = iCount + 1
-    movl    20(%ebp), %edx                          # %edx = iPos 
-    cmpl    %edx, %eax                              # if(iCount+1 == iPos)
+    movl    -12(%ebp), %eax                             # iCount 
+    addl    $1, %eax                                    # %eax = iCount + 1
+    movl    20(%ebp), %edx                              # %edx = iPos 
+    cmpl    %edx, %eax                                  # if(iCount+1 == iPos)
     jne     LABEL_INSERT_NOT_LAST_POS
-    movl    8(%ebp), %eax                           # %eax = ppHead
-    movl    12(%ebp), %edx                          # %edx = ppTail
-    movl    16(%ebp), %ecx                          # %ecx = iNo
+    movl    8(%ebp), %eax                               # %eax = ppHead
+    movl    12(%ebp), %edx                              # %edx = ppTail
+    movl    16(%ebp), %ecx                              # %ecx = iNo
     movl    %eax, (%esp)
     movl    %edx, 4(%esp)
     movl    %ecx, 8(%esp)
@@ -650,22 +945,22 @@ LABEL_INSERT_NOT_POS_1:
 
 LABEL_INSERT_NOT_LAST_POS:
     # it will be definitely now middle position 
-    movl    8(%ebp), %eax                           # %eax = ppHead
-    movl    (%eax), %eax                            # %eax = *ppHead 
-    movl    %eax, -8(%ebp)                          # pTemp = *ppHead
-    movl    $1, -12(%ebp)                           # iCount = 1 
+    movl    8(%ebp), %eax                               # %eax = ppHead
+    movl    (%eax), %eax                                # %eax = *ppHead 
+    movl    %eax, -8(%ebp)                              # pTemp = *ppHead
+    movl    $1, -12(%ebp)                               # iCount = 1 
 
 LABEL_INSERT_AT_POS_WHILE:
     # while(iCount < iPos - 1)
-    movl    -12(%ebp), %eax                         # %eax = iCount
-    movl    20(%ebp), %edx                          # %edx = iPos 
-    subl    $1, %edx                                # %edx = iPos -1
+    movl    -12(%ebp), %eax                             # %eax = iCount
+    movl    20(%ebp), %edx                              # %edx = iPos 
+    subl    $1, %edx                                    # %edx = iPos -1
     cmpl    %edx, %eax 
     jge     LABEL_POSITION_FOUND
-    addl    $1, -12(%ebp)                           # iCount++
-    movl    -8(%ebp), %ebx                          # %ebx = pTemp
-    movl    8(%ebx), %ecx                           # %ecx = pTemp->pNext
-    movl    %ecx, -8(%ebp)                          # pTemp = pTemp->pNext
+    addl    $1, -12(%ebp)                               # iCount++
+    movl    -8(%ebp), %ebx                              # %ebx = pTemp
+    movl    8(%ebx), %ecx                               # %ecx = pTemp->pNext
+    movl    %ecx, -8(%ebp)                              # pTemp = pTemp->pNext
     jmp     LABEL_INSERT_AT_POS_WHILE
 
 LABEL_POSITION_FOUND:
@@ -700,7 +995,7 @@ LABEL_INSERT_POS_MEM_ALLOCATED:
     # pTemp->pNext = pNewNode;
     movl    -4(%ebp), %ebx
     movl    -8(%ebp), %ecx
-    #movl    8(%ecx), %ecx                               # %ecx = pTemp->pNext
+    #movl    8(%ecx), %ecx                              # %ecx = pTemp->pNext
     movl    %ebx, 8(%ecx)        
 
     # pNewNode->pPrev = pTemp;
@@ -728,8 +1023,83 @@ LABEL_INSERT_POSITION_EXIT:
 DeleteLast:
     pushl   %ebp
     movl    %esp, %ebp
+  
+    subl    $16, %esp                                   # align + variable + argument
+
+    movl    $(-1), -4(%ebp)                             # iDelData = -1 (Initial Value)
+    
+    movl    8(%ebp), %eax                               # %eax = ppHead
+    movl    (%eax), %eax                                # %eax = *ppHead
+    cmpl    $0, %eax                                    # if(NULL == *ppHead)
+    je      LABEL_DELETE_LAST_EXIT
+
+    # iDelData = (*ppTail)->iData;
+    movl    12(%ebp), %eax
+    movl    (%eax), %ecx                                # %eax = *ppTail
+    movl    4(%ecx), %ebx                               # %eax = (*ppTail)->iData
+    movl    %ebx, -4(%ebp)                              # iDelData = (*ppTail)->iData;
+
+    # if(*ppHead == *ppTail)                            // only single node present
+    movl    8(%ebp), %eax
+    movl    (%eax), %eax                                # %eax = *ppHead
+    movl    12(%ebp), %edx      
+    movl    (%edx), %edx                                # %edx = *ppTail
+    cmpl    %edx, %eax                                  # compare (*ppHead & *ppTail)
+    jne     LABEL_DELETE_LAST_NODES_PRESENT
+    movl    $NULL, 8(%eax)                              # (*ppHead)->pNext = NULL;
+    movl    $NULL, (%eax)                               # (*ppHead)->pPrev = NULL;
+    movl    %eax, (%esp)
+    call    free
+    movl    8(%ebp), %eax
+    movl    $NULL,(%eax)                                # *ppHead = NULL;
+    movl    12(%ebp), %edx
+    movl    $NULL,(%edx)                                # *ppTail = NULL;
+    jmp     LABEL_DELETE_LAST_EXIT
+
+LABEL_DELETE_LAST_NODES_PRESENT:
+    # *ppTail = (*ppTail)->pPrev;
+    movl    12(%ebp), %eax
+    movl    (%eax), %ebx                                # %eax = *ppTail
+    movl    (%ebx), %edx                                # %edx = (*ppTail)->pPrev
+    movl    %edx, (%eax)                                # *ppTail = (*ppTail)->pPrev;
+
+    # (*ppHead)->pPrev->pNext = NULL;
+    movl    8(%ebp), %eax                               # %eax = ppHead   
+    movl    (%eax), %ebx                                # %eax = *ppHead
+    movl    (%ebx), %edx                                # %edx = (*ppHead)->pPrev
+    movl    $NULL, 8(%edx)                              # (*ppHead)->pPrev->pNext = NULL;
+    
+    # (*ppHead)->pPrev->pPrev = NULL;
+    movl    8(%ebp), %eax                               # %eax = ppHead   
+    movl    (%eax), %ebx                                # %eax = *ppHead
+    movl    (%ebx), %edx                                # %edx = (*ppHead)->pPrev
+    movl    $NULL, (%edx)                               # (*ppHead)->pPrev->pPrev = NULL;
+
+    # free((*ppHead)->pPrev);
+    movl    8(%ebp), %eax
+    movl    (%eax), %ebx                                # %eax = *ppHead
+    movl    (%ebx), %edx                                # %edx = (*ppHead)->pPrev
+    movl    %edx, (%esp)
+    call    free 
+
+    # (*ppTail)->pNext = *ppHead;
+    movl    8(%ebp), %ecx
+    movl    (%ecx), %ecx                                # %ecx = *ppHead
+    movl    12(%ebp), %eax
+    movl    (%eax), %eax                                # %eax = *ppTail
+    movl    %ecx, 8(%eax)                               # (*ppTail)->pNext = *ppHead;
+
+    # (*ppHead)->pPrev = *ppTail;
+    movl    12(%ebp), %ecx
+    movl    (%ecx), %ecx                                # %ecx = *ppTail
+    movl    8(%ebp), %eax
+    movl    (%eax), %eax                                # %eax = *ppHead
+    movl    %ecx, (%eax)                                # (*ppHead)->pPrev = *ppTail;
 
 
+
+LABEL_DELETE_LAST_EXIT:
+    movl    -4(%ebp), %eax                              # %eax = iDelData (return value)
     movl    %ebp, %esp    
     popl    %ebp 
     ret 
@@ -749,7 +1119,82 @@ DeleteFirst:
     pushl   %ebp
     movl    %esp, %ebp
     
+    subl    $16, %esp                                   # align + variable + argument
 
+    movl    $(-1), -4(%ebp)                             # iDelData = -1 (Initial Value)
+    
+    movl    8(%ebp), %eax                               # %eax = ppHead
+    movl    (%eax), %eax                                # %eax = *ppHead
+    cmpl    $0, %eax                                    # if(NULL == *ppHead)
+    je      LABEL_DELETE_FIRST_EXIT
+
+    # iDelData = (*ppHead)->iData;
+    movl    8(%ebp), %eax
+    movl    (%eax), %eax                                # %eax = *ppHead
+    movl    4(%eax), %ebx                               # %eax = (*ppHead)->iData
+    movl    %ebx, -4(%ebp)                              # iDelData = (*ppHead)->iData
+
+    # if(*ppHead == *ppTail)                            // only single node present
+    movl    8(%ebp), %eax
+    movl    (%eax), %eax                                # %eax = *ppHead
+    movl    12(%ebp), %edx      
+    movl    (%edx), %edx                                # %edx = *ppTail
+    cmpl    %edx, %eax                                  # compare (*ppHead & *ppTail)
+    jne     LABEL_DELETE_FIRST_NODES_PRESENT
+    movl    $NULL, 8(%eax)                              # (*ppHead)->pNext = NULL;
+    movl    $NULL, (%eax)                               # (*ppHead)->pPrev = NULL;
+    movl    %eax, (%esp)
+    call    free
+    movl    8(%ebp), %eax
+    movl    $NULL,(%eax)                                # *ppHead = NULL;
+    movl    12(%ebp), %edx
+    movl    $NULL,(%edx)                                # *ppTail = NULL;
+    jmp     LABEL_DELETE_FIRST_EXIT
+
+LABEL_DELETE_FIRST_NODES_PRESENT:
+    # *ppHead = (*ppHead)->pNext;
+    movl    8(%ebp), %eax
+    movl    (%eax), %ebx                                # %eax = *ppHead
+    movl    8(%ebx), %edx                               # %edx = (*ppHead)->pNext
+    movl    %edx, (%eax)                                # *ppHead = (*ppHead)->pNext
+
+    # (*ppTail)->pNext->pNext = NULL;
+    movl    12(%ebp), %eax                              # %eax = ppTail   
+    movl    (%eax), %eax                                # %eax = *ppTail
+    movl    8(%eax), %edx                               # %edx = (*ppTail)->pNext
+    movl    $NULL, 8(%edx)                              # (*ppTail)->pNext->pNext = NULL
+    
+    # (*ppTail)->pNext->pPrev = NULL;
+    movl    12(%ebp), %eax                              # %eax = ppTail   
+    movl    (%eax), %eax                                # %eax = *ppTail
+    movl    8(%eax), %edx                               # %edx = (*ppTail)->pNext
+    movl    $NULL, (%edx)                               # (*ppTail)->pNext->pPrev = NULL;
+
+    # free((*ppTail)->pNext);
+    movl    12(%ebp), %eax
+    movl    (%eax), %eax                                # %eax = *ppTail
+    movl    8(%eax), %edx                               # %edx = (*ppTail)->pNext
+    movl    %edx, (%esp)
+    call    free 
+
+    # (*ppTail)->pNext = *ppHead;
+    movl    8(%ebp), %ecx
+    movl    (%ecx), %ecx                                # %ecx = *ppHead
+    movl    12(%ebp), %eax
+    movl    (%eax), %eax                                # %eax = *ppTail
+    movl    %ecx, 8(%eax)                               # (*ppTail)->pNext = *ppHead;
+
+    # (*ppHead)->pPrev = *ppTail;
+    movl    12(%ebp), %ecx
+    movl    (%ecx), %ecx                                # %ecx = *ppTail
+    movl    8(%ebp), %eax
+    movl    (%eax), %eax                                # %eax = *ppHead
+    movl    %ecx, (%eax)                                # (*ppHead)->pPrev = *ppTail;
+
+
+
+LABEL_DELETE_FIRST_EXIT:
+    movl    -4(%ebp), %eax                              # %eax = iDelData (return value)
     movl    %ebp, %esp    
     popl    %ebp 
     ret 
@@ -767,7 +1212,112 @@ DeleteAtPosition:
     pushl   %ebp
     movl    %esp, %ebp
     
+    subl    $16, %esp                                   # local variable, parameters and align with 16
 
+    movl    $NULL, -4(%ebp)                             # struct List *pTemp = NULL
+
+    #iCount = CountNode(*ppHead, *ppTail);
+    movl    8(%ebp), %ebx                               # %ebx = pHead 
+    movl    (%ebx), %ebx                                # %ebx = *pHead
+    movl    12(%ebp), %ecx                              # %ecx = pTail
+    movl    (%ecx), %ecx                                # %ecx = *pTail 
+    movl    %ebx, (%esp)    
+    movl    %ecx, 4(%esp)
+    call    CountNode
+    movl    %eax, -8(%ebp)                              # iCount = CountNode(*ppHead, *ppTail);
+
+    # if(iPos <= 0 || iPos > iCount)
+    movl    16(%ebp), %eax                              # %eax = iPos 
+    cmpl    $0, %eax
+    jle     LABEL_DELETE_INVALID_POSITION_IF
+    movl    -8(%ebp), %ecx                              # %ecx = iCount
+    cmpl    %ecx, %eax                                  # if(iPos > iCount)
+    jle     LABEL_DELETE_POSITION_VALID
+
+LABEL_DELETE_INVALID_POSITION_IF:
+    movl    $msg_print_invalid_position, (%esp)
+    call    printf
+    movl    $(-2), -8(%ebp) 
+    jmp     LABEL_DELETE_POSITION_EXIT
+
+LABEL_DELETE_POSITION_VALID:
+    movl    16(%ebp), %eax                              # %eax = iPos
+    cmpl    $1, %eax
+    jne     LABEL_DELETE_NOT_POS_1
+    movl    8(%ebp), %eax                               # %eax = ppHead
+    movl    12(%ebp), %edx                              # %edx = ppTail
+    movl    %eax, (%esp)
+    movl    %edx, 4(%esp)
+    call    DeleteFirst
+    movl    %eax, -8(%ebp)                              # %eax = DeleteFirst(pFirst, pLast)
+    jmp     LABEL_DELETE_POSITION_EXIT
+
+LABEL_DELETE_NOT_POS_1:
+    movl    -8(%ebp), %eax                              # iCount 
+    movl    16(%ebp), %edx                              # %edx = iPos 
+    cmpl    %edx, %eax                                  # if(iCount == iPos)
+    jne     LABEL_DELETE_NOT_LAST_POS
+    movl    8(%ebp), %eax                               # %eax = ppHead
+    movl    12(%ebp), %edx                              # %edx = ppTail
+    movl    %eax, (%esp)
+    movl    %edx, 4(%esp)
+    call    DeleteLast
+    movl    %eax, -8(%ebp)                              # %eax = DeleteFirst(pFirst, pLast)
+    jmp     LABEL_DELETE_POSITION_EXIT
+
+LABEL_DELETE_NOT_LAST_POS:
+    # it will be definitely now middle position 
+    movl    8(%ebp), %eax                               # %eax = ppHead
+    movl    (%eax), %ebx                                # %eax = *ppHead 
+    movl    %ebx, -4(%ebp)                              # pTemp = *ppHead
+    movl    $1, -8(%ebp)                                # iCount = 1 
+
+LABEL_DELETE_AT_POS_WHILE:
+    # while(iCount < iPos)
+    movl    -8(%ebp), %eax                              # %eax = iCount
+    movl    16(%ebp), %edx                              # %edx = iPos 
+    cmpl    %edx, %eax 
+    jge     LABEL_DELETE_POSITION_FOUND
+    addl    $1, -8(%ebp)                                # iCount++
+    movl    -4(%ebp), %ebx                              # %ebx = pTemp
+    movl    8(%ebx), %ecx                               # %ecx = pTemp->pNext
+    movl    %ecx, -4(%ebp)                              # pTemp = pTemp->pNext
+    jmp     LABEL_DELETE_AT_POS_WHILE
+
+LABEL_DELETE_POSITION_FOUND:
+    # pTemp->pPrev->pNext = pTemp->pNext;
+movl    -4(%ebp), %eax                                  # %eax = pTemp
+movl    8(%eax), %edx                                   # %edx = pTemp->pNext
+movl    (%eax), %ebx                                    # %ebx = pTemp->pPrev
+movl    %edx, 8(%ebx)                                   # pTemp->pPrev->pNext = pTemp->pNext;
+
+    # pTemp->pNext->pPrev = pTemp->pPrev;
+movl    -4(%ebp), %eax                                  # %eax = pTemp
+movl    (%eax), %ebx                                    # %ebx = pTemp->pPrev
+movl    8(%eax), %edx                                   # %edx = pTemp->pNext
+movl    %ebx, (%edx)                                    # pTemp->pNext->pPrev = pTemp->pPrev;
+
+    # pTemp->pNext = NULL;
+movl    -4(%ebp), %eax                                  # %eax = pTemp
+movl    $NULL, 8(%eax)                                  # pTemp->pNext = NULL;
+
+    # pTemp->pPrev = NULL;
+movl    -4(%ebp), %eax                                  # %eax = pTemp
+movl    $NULL, (%eax)                                   # pTemp->pPrev = NULL;
+                    
+    # iCount = pTemp->iData;
+movl    -4(%ebp), %eax                                  # %eax = pTemp
+movl    4(%eax), %edx                                   # %edx = pTemp->data
+movl    %edx, -8(%ebp)                                  # iCount = pTemp->iData;
+
+    # free(pTemp);
+movl    -4(%ebp), %eax                                  # %eax = pTemp
+    movl    %eax, (%esp)
+    call    free
+
+
+LABEL_DELETE_POSITION_EXIT:
+    movl    -8(%ebp), %eax 
     movl    %ebp, %esp    
     popl    %ebp 
     ret 
@@ -786,65 +1336,65 @@ DeleteAllNodes:
     pushl   %ebp
     movl    %esp, %ebp
     
-    subl    $16, %esp           # align + variable + argument
+    subl    $16, %esp                                   # align + variable + argument
     
-    movl    8(%ebp), %eax               # %eax = ppHead
-    movl    (%eax), %eax                # %eax = *ppHead
+    movl    8(%ebp), %eax                               # %eax = ppHead
+    movl    (%eax), %eax                                # %eax = *ppHead
     cmpl    $0, %eax
     je      LABEL_DELETE_ALL_NODES_EXIT
 
 LABEL_DELETE_ALL_NODES_WHILE:
     # condition checking
-    movl    8(%ebp), %ebx               # %eax = ppHead
-    movl    (%ebx), %eax                # %eax = *ppHead
+    movl    8(%ebp), %ebx                               # %eax = ppHead
+    movl    (%ebx), %eax                                # %eax = *ppHead
     movl    12(%ebp), %edx
-    movl    (%edx), %edx                # %edx = *ppTail
-    cmpl    %edx, %eax                  # while (*ppHead != *ppTail)
+    movl    (%edx), %edx                                # %edx = *ppTail
+    cmpl    %edx, %eax                                  # while (*ppHead != *ppTail)
     je      LABEL_DELETE_WHILE_BREAK
 
-    movl    8(%ebp), %ebx               # %eax = ppHead
-    movl    (%ebx), %eax                # %eax = *ppHead   
-    movl    $NULL, (%eax)               # *ppHead->pPrev = NULL
+    movl    8(%ebp), %ebx                               # %eax = ppHead
+    movl    (%ebx), %eax                                # %eax = *ppHead   
+    movl    $NULL, (%eax)                               # *ppHead->pPrev = NULL
 
-    movl    8(%ebp), %ebx               # %ebx = ppHead
-    movl    (%ebx), %eax                # %eax = *ppHead 
-    movl    8(%eax), %ecx               # %ecx = (*ppHead)->pNext
-    movl    %ecx, (%ebx)                # *ppHead = (*ppHead)->pNext
+    movl    8(%ebp), %ebx                               # %ebx = ppHead
+    movl    (%ebx), %eax                                # %eax = *ppHead 
+    movl    8(%eax), %ecx                               # %ecx = (*ppHead)->pNext
+    movl    %ecx, (%ebx)                                # *ppHead = (*ppHead)->pNext
 
-    movl    12(%ebp), %edx              # %edx = ppTail 
-    movl    (%edx), %ecx                # %edx = *ppTail 
-    movl    8(%ecx), %ebx               # %ebx = *ppTail->pNext
+    movl    12(%ebp), %edx                              # %edx = ppTail 
+    movl    (%edx), %ecx                                # %edx = *ppTail 
+    movl    8(%ecx), %ebx                               # %ebx = *ppTail->pNext
 
-    movl    $NULL, 8(%ebx)                 # (*ppTail)->pNext->pNext = NULL
+    movl    $NULL, 8(%ebx)                              # (*ppTail)->pNext->pNext = NULL
     movl    %ebx, (%esp)
     call    free 
      
     movl    12(%ebp), %edx
     movl    (%edx), %edx 
-    movl    8(%ebp), %eax               # ppHead
-    movl    (%eax), %eax                # *ppHead
-    movl    %eax, 8(%edx)               # (*ppTail)->pNext = *ppHead;
+    movl    8(%ebp), %eax                               # ppHead
+    movl    (%eax), %eax                                # *ppHead
+    movl    %eax, 8(%edx)                               # (*ppTail)->pNext = *ppHead;
     jmp     LABEL_DELETE_ALL_NODES_WHILE
 
 LABEL_DELETE_WHILE_BREAK:
     movl    8(%ebp), %eax
-    movl    (%eax), %eax                # %eax = (*ppHead)
-    movl    $NULL, 8(%eax)                 # (*ppHead)->pNext = NULL
+    movl    (%eax), %eax                                # %eax = (*ppHead)
+    movl    $NULL, 8(%eax)                              # (*ppHead)->pNext = NULL
     
     movl    8(%ebp), %eax
-    movl    (%eax), %eax                # %eax = (*ppHead)
-    movl    $NULL, (%eax)                  # (*ppHead)->pPrev = NULL
+    movl    (%eax), %eax                                # %eax = (*ppHead)
+    movl    $NULL, (%eax)                               # (*ppHead)->pPrev = NULL
 
     movl    8(%ebp), %eax
-    movl    (%eax), %eax                # %eax = (*ppHead)
+    movl    (%eax), %eax                                # %eax = (*ppHead)
     movl    %eax, (%esp)
     call    free
 
     movl    8(%ebp), %eax
-    movl    $NULL, (%eax)               # *ppHead = NULL
+    movl    $NULL, (%eax)                               # *ppHead = NULL
 
     movl    12(%ebp), %eax
-    movl    $NULL, (%eax)               # *ppTail = NULL
+    movl    $NULL, (%eax)                               # *ppTail = NULL
 
 
     #movl    $0, 8(%ebp)
@@ -873,7 +1423,48 @@ SearchLastOccurance:
     pushl   %ebp
     movl    %esp, %ebp
 
+    subl    $16, %esp                                   # variable and align with 16
 
+    movl    $(-1), -4(%ebp)                             # iPos = -1 (Initial Value)
+    
+    movl    8(%ebp), %eax                               # %eax = pHead
+    cmpl    $0, %eax                                    # if(NULL == pHead)
+    je      LABEL_SEARCH_LAST_EXIT
+    movl    $1, -4(%ebp)                                # iPos = 1
+    movl    $0, -8(%ebp)                                # iLast = 0
+
+LABEL_SEARCH_LAST_DO:
+    #if(pHead->iData == iKey)
+    movl    16(%ebp), %ecx                              # %ecx = iKey 
+    movl    8(%ebp), %eax                               # %eax = pHead
+    movl    4(%eax), %edx                               # %edx = pHead->iData
+    cmpl    %ecx, %edx 
+    jne     LABEL_SEARCH_LAST_DO_ELSE                   # if(pHead->iData == iKey)
+    movl    -4(%ebp), %eax                              # %eax = iPos
+    movl    %eax, -8(%ebp)                              # iLast = iPos
+
+
+LABEL_SEARCH_LAST_DO_ELSE:
+    addl    $1, -4(%ebp)                                # iPos++
+    movl    8(%ebp), %eax                               # %eax = pHead
+    movl    8(%eax), %ebx                               # %ebx = pHead->pNext
+    movl    %ebx, 8(%ebp)                               # pHead = phead->pNext 
+
+    # while(pHead!=pTail->pNext);
+    movl    8(%ebp), %ebx                               # %ebx = pHead
+    movl    12(%ebp), %ecx                              # %ecx = pTail 
+    movl    8(%ecx), %edx                               # %edx = pTail->pNext
+    cmpl    %edx, %ebx                                  # compare (pHead & pTail->pNext)
+    jne     LABEL_SEARCH_LAST_DO
+
+    # outside of the while loop   
+    movl    -8(%ebp), %eax                              # if(0 == iLast)  
+    cmpl    $0, %eax
+    jne     LABEL_SEARCH_LAST_EXIT
+    movl    $(-2), -8(%ebp)                             # return -2
+
+LABEL_SEARCH_LAST_EXIT:
+    movl    -8(%ebp), %eax                              # return value (iLast)
     movl    %ebp, %esp    
     popl    %ebp 
     ret 
@@ -893,7 +1484,48 @@ SearchFirstOccurance:
     pushl   %ebp
     movl    %esp, %ebp
     
+    subl    $16, %esp                                   # variable and align with 16
 
+    movl    $(-1), -4(%ebp)                             # iPos = -1 (Initial Value)
+    
+    movl    8(%ebp), %eax                               # %eax = pHead
+    cmpl    $0, %eax                                    # if(NULL == pHead)
+    je      LABEL_SEARCH_FIRST_EXIT
+    movl    $1, -4(%ebp)                                # iPos = 1
+
+LABEL_SEARCH_FIRST_DO:
+    #if(pHead->iData == iKey)
+    movl    16(%ebp), %ecx                              # %ecx = iKey 
+    movl    8(%ebp), %eax                               # %eax = pHead
+    movl    4(%eax), %edx                               # %edx = pHead->iData
+    cmpl    %ecx, %edx 
+    je      LABEL_SEARCH_FIRST_DO_BREAK                 # if(pHead->iData == iKey)
+
+    addl    $1, -4(%ebp)                                # iPos++
+    movl    8(%ebp), %eax                               # %eax = pHead
+    movl    8(%eax), %ebx                               # %ebx = pHead->pNext
+    movl    %ebx, 8(%ebp)                               # pHead = phead->pNext 
+
+    # while(pHead!=pTail->pNext);
+    movl    8(%ebp), %ebx                               # %ebx = pHead
+    movl    12(%ebp), %ecx                              # %ecx = pTail 
+    movl    8(%ecx), %edx                               # %edx = pTail->pNext
+    cmpl    %edx, %ebx                                  # compare (pHead & pTail->pNext)
+    jne     LABEL_SEARCH_FIRST_DO
+
+LABEL_SEARCH_FIRST_DO_BREAK:
+    movl    8(%ebp), %ebx                               # %ebx = pHead
+    movl    12(%ebp), %ecx                              # %ecx = pTail 
+    movl    8(%ecx), %edx                               # %edx = pTail->pNext
+    cmpl    %edx, %ebx
+    jne     LABEL_SEARCH_FIRST_EXIT
+    movl    -4(%ebp), %eax                              # %eax = iPos
+    cmpl    $1, %eax
+    je      LABEL_SEARCH_FIRST_EXIT
+    movl    $(-2), -4(%ebp)                             # iPos = -2
+
+LABEL_SEARCH_FIRST_EXIT:
+    movl    -4(%ebp), %eax                              # return value
     movl    %ebp, %esp    
     popl    %ebp 
     ret 
@@ -912,7 +1544,37 @@ SearchAllOccurances:
     pushl   %ebp
     movl    %esp, %ebp
     
+    subl    $16, %esp                                   # variable and align with 16
 
+    movl    $0, -4(%ebp)                                # iCount = 0
+
+    movl    8(%ebp), %eax                               # %eax = pHead
+    cmpl    $0, %eax                                    # if(NULL == pHead)
+    je      LABEL_SEARCH_ALL_EXIT
+
+LABEL_SEARCH_ALL_DO:
+    #if(pHead->iData == iKey)
+    movl    16(%ebp), %ecx                              # %ecx = iKey 
+    movl    8(%ebp), %eax                               # %eax = pHead
+    movl    4(%eax), %edx                               # %edx = pHead->iData
+    cmpl    %ecx, %edx 
+    jne     LABEL_SEARCH_ALL_ELSE                       # if(pHead->iData == iKey)
+    addl    $1,-4(%ebp)                                 # iCount++;
+
+LABEL_SEARCH_ALL_ELSE:
+    movl    8(%ebp), %ebx                               # %ebx = pHead 
+    movl    8(%ebx), %ecx                               # %ecx = pHead->pNext
+    movl    %ecx, 8(%ebp)                               # pHead = pHead->pNext
+
+    movl    8(%ebp), %ebx 
+    movl    12(%ebp), %ecx                              # %ecx = pTail 
+    movl    8(%ecx), %ecx                               # %ecx = pTail->pNext
+    cmpl    %ecx, %ebx                                  # compare (pHead & pTail->pNext)
+    jne     LABEL_SEARCH_ALL_DO  
+
+
+LABEL_SEARCH_ALL_EXIT:
+    movl    -4(%ebp), %eax 
     movl    %ebp, %esp    
     popl    %ebp 
     ret 
@@ -931,13 +1593,13 @@ Display:
     pushl   %ebp
     movl    %esp, %ebp
 
-    subl    $16, %esp                   # size of total no of argument + align with 16
+    subl    $16, %esp                                   # size of total no of argument + align with 16
 
     movl    $msg_display_print_list, (%esp)
     call    printf
 
-    movl    8(%ebp), %ebx               # %ebx = pHead
-    #movl    (%ebx), %ecx               # %eax = *pHead
+    movl    8(%ebp), %ebx                               # %ebx = pHead
+    #movl    (%ebx), %ecx                               # %eax = *pHead
     cmpl    $0, %ebx        
     jne     LABEL_DISPLAY_LIST
     movl    $msg_print_empty, (%esp)
@@ -948,7 +1610,7 @@ LABEL_DISPLAY_LIST:
     # printf("<-|%d|->", pHead->iData);
     #movl    $1, %eax
     movl    8(%ebp), %ebx                               # ebx = pHead
-    #movl    (%ebx, %eax, 4), %eax                       # eax = pHead->data
+    #movl    (%ebx, %eax, 4), %eax                      # eax = pHead->data
     movl    4(%ebx), %eax
     movl    $msg_print_arrow_data, (%esp)
     movl    %eax, 4(%esp)
@@ -956,13 +1618,13 @@ LABEL_DISPLAY_LIST:
 
     #movl    $2, %eax 
     movl    8(%ebp), %ebx                               # ebx = pHead
-    #movl    (%ebx, %eax, 4), %ecx                       # ecx = pHead->pNext
+    #movl    (%ebx, %eax, 4), %ecx                      # ecx = pHead->pNext
     movl    8(%ebx), %ecx
     movl    %ecx, 8(%ebp)                               
 
     #movl    $2, %eax
     movl    12(%ebp), %edx
-    #movl    (%edx, %eax, 4), %edx                       # edx = pTail->pNext
+    #movl    (%edx, %eax, 4), %edx                      # edx = pTail->pNext
     movl    8(%edx), %edx
     cmpl    %edx, %ecx
     jne     LABEL_DISPLAY_LIST
@@ -991,12 +1653,12 @@ ReverseDisplay:
     pushl   %ebp
     movl    %esp, %ebp
 
-    subl    $16, %esp               # size of total no of argument + align with 16
+    subl    $16, %esp                                   # size of total no of argument + align with 16
 
     movl    $msg_reverse_display_print_list, (%esp)
     call    printf
 
-    movl    12(%ebp), %ebx               # %ebx = pTail
+    movl    12(%ebp), %ebx                              # %ebx = pTail
     cmpl    $0, %ebx        
     jne     LABEL_REVERSE_DISPLAY
     movl    $msg_print_empty, (%esp)
@@ -1047,25 +1709,25 @@ CountNode:
     pushl   %ebp
     movl    %esp, %ebp
     
-    subl    $16, %esp                               # size of total no of argument + align with 16
+    subl    $16, %esp                                   # size of total no of argument + align with 16
 
-    movl    $0, -4(%ebp)                            # int iCount = 0;
+    movl    $0, -4(%ebp)                                # int iCount = 0;
 
     # if(NULL == pHead) 
-    movl    8(%ebp), %eax                           # %eax = pHead
+    movl    8(%ebp), %eax                               # %eax = pHead
     cmpl    $0, %eax        
-    je      LABEL_RETURN_COUNT                      # return Count;
+    je      LABEL_RETURN_COUNT                          # return Count;
 
 LABEL_COUNT_NODE:
-    addl    $1,-4(%ebp)                                # iCount++;
-    movl    8(%ebp), %ebx                           # %ebx = pHead 
-    movl    8(%ebx), %ecx                           # %ecx = pHead->pNext
-    movl    %ecx, 8(%ebp)                           # pHead = pHead->pNext
+    addl    $1,-4(%ebp)                                 # iCount++;
+    movl    8(%ebp), %ebx                               # %ebx = pHead 
+    movl    8(%ebx), %ecx                               # %ecx = pHead->pNext
+    movl    %ecx, 8(%ebp)                               # pHead = pHead->pNext
 
     movl    8(%ebp), %ebx 
-    movl    12(%ebp), %ecx                          # %ecx = pTail 
-    movl    8(%ecx), %ecx                           # %ecx = pTail->pNext
-    cmpl    %ecx, %ebx                              # compare (pHead & pTail->pNext)
+    movl    12(%ebp), %ecx                              # %ecx = pTail 
+    movl    8(%ecx), %ecx                               # %ecx = pTail->pNext
+    cmpl    %ecx, %ebx                                  # compare (pHead & pTail->pNext)
     jne     LABEL_COUNT_NODE                             
 
 LABEL_RETURN_COUNT:
@@ -1077,9 +1739,6 @@ LABEL_RETURN_COUNT:
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o COUNT NODE FUNCTION EXECUTION CODE ENDS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-
-
 
 /* ==================== TEXT SECTION ENDS HERE ===================== */
 
