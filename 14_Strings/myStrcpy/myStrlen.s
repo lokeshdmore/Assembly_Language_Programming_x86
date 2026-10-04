@@ -28,8 +28,8 @@ LABEL_WHILE:
     addl    $1, %esi 
 
 LABEL_WHILE_CONDITION:
-    movl    (%esi), %edx 
-    cmpl    $0,%edx 
+    movb    (%esi), %dl 
+    cmpb    $0, %dl
     jne     LABEL_WHILE
 
     movl    %eax, -4(%ebp)

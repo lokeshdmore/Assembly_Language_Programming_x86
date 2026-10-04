@@ -1,5 +1,5 @@
 /* =================================================================
- *	Code   : myStrcpy using while
+ *	Code   : myStrupr
  *	Author : Lokesh More <ldmore118@gmail.com>
  *	Course : Assembly Language Programming - Batch 11
  *	Date   : 30th Sept 2026
@@ -8,20 +8,11 @@
 /* ===================== READY ONLY DATA SECTION =================== */
 
 .section .rodata
-	msg_main_enter_first_string : 
-	.string "Enter your first string : "
+	msg_main_enter_string : 
+	.string "Enter your string : "
 
-    msg_main_enter_second_string : 
-	.string "Enter your second string : "
-
-	msg_main_print_copied_string : 
-	.string "your copied string is : \"%s\"\n"
-
-    msg_string:
-    .string "your string is : %s\n"
-
-    msg_scan:
-    .string "%s"
+	msg_main_print_replaced_string : 
+	.string "your Updated string : %s\n"
 
 /* ================= READY ONLY DATA SECTION ENDS HERE ============= */
 
@@ -38,81 +29,85 @@ main:
 	pushl   %ebp
 	movl    %esp, %ebp
 
-    subl    $400, %esp                              # local variables (char str1[256] + char str2[128] + arguments + align to 16)
+    subl    $272, %esp                          # local variables with parameters and align to 16
 
-    movl    $msg_main_enter_first_string, (%esp)          # printf("Enter your string : ");
+    movl    $msg_main_enter_string, (%esp)      # printf("Enter your string : ");
     call    printf
 
-    leal    -256(%ebp), %ebx                        # gets(str1);
+    leal    -256(%ebp), %ebx                      # gets(str);
     movl    %ebx, (%esp)
     call    gets    
 
-    movl    $msg_main_enter_second_string, (%esp)          # printf("Enter your string : ");
-    call    printf
 
-    leal    -384(%ebp), %ebx                        # gets(str2);
-    movl    %ebx, (%esp)
-    call    gets    
+    # char* str = myStrupr(str1);
+    leal    -256(%ebp), %eax                        # %eax = str
+    movl    %eax, (%esp)
+    call    myStrupr
+    movl    %eax, -260(%ebp)                         # char* str = myStrupr(str1);
 
-    # char* str = myStrcpy(str1, str2);
+
+    # printf("your updated string is \"%s\"\n", str);
     leal    -256(%ebp), %ebx
-    leal    -384(%ebp), %ecx
-    movl    %ebx, (%esp)
-    movl    %ecx, 4(%esp)
-    call    myStrcpy
-    movl    %eax, -388(%ebp)                        # char *str = myStrcpy(str1, str2);
+    movl    $msg_main_print_replaced_string, (%esp)
+    movl    %ebx, 4(%esp)
+    call    printf 
 
-    movl    $msg_main_print_copied_string, (%esp)
-    movl    %eax, 4(%esp)
-    call    printf
-
-	movl    $0, (%esp)
-	call    exit
+	movl $0, (%esp)
+	call exit
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o MAIN FUNCTION EXECUTION CODE ENDS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-/*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o MY_STRCPY FUNCTION EXECUTION CODE STARTS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
+/*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o MY_STRSET FUNCTION EXECUTION CODE STARTS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-.globl  myStrcpy
-.type   myStrcpy, @function
-myStrcpy:
+.globl  myStrupr
+.type   myStrupr, @function
+myStrupr:
     pushl   %ebp
     movl    %esp, %ebp
 
     subl    $16, %esp               # variable + align with 16
 
-    movl    $0, -4(%ebp)            # int iCounter1 = 0;
+    movl    $0, -4(%ebp)            # int iCounter = 0;
  
-    movl    $0, %eax
+    # int length = myStrlen(str);
+    movl    8(%ebp), %eax                  # %eax = str
+    movl    %eax, (%esp)
+    call    myStrlen
+    movl    %eax, %ecx                      # int length = myStrlen(str);
 
     movl    8(%ebp), %edi
-    movl    12(%ebp), %esi 
-    movl    %edi, %ecx 
     jmp     LABEL_WHILE_CONDITION
 
 LABEL_WHILE:
-    movsb   
+    subl    $1, %ecx
+    movb    (%edi), %dl
+    cmpb    $97, %dl
+    jl      LABEL_COUNTER
+    cmpb    $122, %dl
+    jg      LABEL_COUNTER
+    subb    $32, %dl
+    movb    %dl, (%edi)
+ 
+LABEL_COUNTER:
+    addl    $1, %edi   
 
 LABEL_WHILE_CONDITION:
-    movl    (%esi), %edx 
-    cmpl    $0,%edx 
+    cmpl    $0, %ecx
     jne     LABEL_WHILE
+    
 
-    movl    $0, (%edi)
-
-    movl    %ecx, 8(%ebp)
-    movl    %ecx, %eax 
+    movl    8(%ebp), %eax
 
     movl    %ebp, %esp
     popl    %ebp
     ret 
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-/*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o MY_STRCPY FUNCTION EXECUTION CODE STARTS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
+/*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o MY_STRSET FUNCTION EXECUTION CODE STARTS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 /* ==================== TEXT SECTION ENDS HERE ===================== */

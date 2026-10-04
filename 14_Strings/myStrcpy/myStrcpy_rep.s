@@ -83,29 +83,21 @@ myStrcpy:
     pushl   %ebp
     movl    %esp, %ebp
 
-    subl    $16, %esp               # variable + align with 16
+    subl    $16, %esp                       # variable + align with 16
 
-    movl    $0, -4(%ebp)            # int iCounter1 = 0;
- 
-    movl    $0, %eax
+    movl    $0, -4(%ebp)                    # int iCounter1 = 0;
+
+    # int length = myStrlen(str);
+    leal    12(%ebp), %eax                  # %eax = str
+    movl    %eax, (%esp)
+    call    myStrlen
+    movl    %eax, %ecx                      # int length = myStrlen(str);
 
     movl    8(%ebp), %edi
-    movl    12(%ebp), %esi 
-    movl    %edi, %ecx 
-    jmp     LABEL_WHILE_CONDITION
+    movl    12(%ebp), %esi   
+    movl    %edi, %eax 
 
-LABEL_WHILE:
-    movsb   
-
-LABEL_WHILE_CONDITION:
-    movl    (%esi), %edx 
-    cmpl    $0,%edx 
-    jne     LABEL_WHILE
-
-    movl    $0, (%edi)
-
-    movl    %ecx, 8(%ebp)
-    movl    %ecx, %eax 
+    rep     movsb 
 
     movl    %ebp, %esp
     popl    %ebp

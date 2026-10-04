@@ -1,5 +1,5 @@
 /* =================================================================
- *	Code   : myStrcpy using while
+ *	Code   : myStrncat using while
  *	Author : Lokesh More <ldmore118@gmail.com>
  *	Course : Assembly Language Programming - Batch 11
  *	Date   : 30th Sept 2026
@@ -14,14 +14,21 @@
     msg_main_enter_second_string : 
 	.string "Enter your second string : "
 
-	msg_main_print_copied_string : 
-	.string "your copied string is : \"%s\"\n"
+	msg_main_print_concetenate_string : 
+	.string "your concetenate string is : \"%s\"\n"
 
     msg_string:
     .string "your string is : %s\n"
 
     msg_scan:
     .string "%s"
+
+    msg_scan_no:
+    .string "%d"
+
+    msg_main_enter_no_char:
+    .string "Enter the no of character to concetenate: "
+    
 
 /* ================= READY ONLY DATA SECTION ENDS HERE ============= */
 
@@ -38,7 +45,7 @@ main:
 	pushl   %ebp
 	movl    %esp, %ebp
 
-    subl    $400, %esp                              # local variables (char str1[256] + char str2[128] + arguments + align to 16)
+    subl    $416, %esp                              # local variables (char str1[256] + char str2[128] + arguments + align to 16)
 
     movl    $msg_main_enter_first_string, (%esp)          # printf("Enter your string : ");
     call    printf
@@ -54,15 +61,25 @@ main:
     movl    %ebx, (%esp)
     call    gets    
 
-    # char* str = myStrcpy(str1, str2);
+    movl    $msg_main_enter_no_char, (%esp)
+    call    printf
+
+    leal    -392(%ebp), %ebx
+    movl    $msg_scan_no, (%esp)
+    movl    %ebx, 4(%esp)
+    call    scanf
+
+    # char* str = myStrncat(str1, str2);
     leal    -256(%ebp), %ebx
     leal    -384(%ebp), %ecx
+    movl    -392(%ebp), %edx
     movl    %ebx, (%esp)
     movl    %ecx, 4(%esp)
-    call    myStrcpy
-    movl    %eax, -388(%ebp)                        # char *str = myStrcpy(str1, str2);
+    movl    %edx, 8(%esp)
+    call    myStrncat
+    movl    %eax, -388(%ebp)                        # char *str = myStrncat(str1, str2);
 
-    movl    $msg_main_print_copied_string, (%esp)
+    movl    $msg_main_print_concetenate_string, (%esp)
     movl    %eax, 4(%esp)
     call    printf
 
@@ -77,35 +94,40 @@ main:
 /*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o MY_STRCPY FUNCTION EXECUTION CODE STARTS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-.globl  myStrcpy
-.type   myStrcpy, @function
-myStrcpy:
+.globl  myStrncat
+.type   myStrncat, @function
+myStrncat:
     pushl   %ebp
     movl    %esp, %ebp
 
     subl    $16, %esp               # variable + align with 16
-
-    movl    $0, -4(%ebp)            # int iCounter1 = 0;
  
-    movl    $0, %eax
-
     movl    8(%ebp), %edi
-    movl    12(%ebp), %esi 
-    movl    %edi, %ecx 
     jmp     LABEL_WHILE_CONDITION
 
 LABEL_WHILE:
-    movsb   
+    addl    $1, %edi 
 
 LABEL_WHILE_CONDITION:
-    movl    (%esi), %edx 
-    cmpl    $0,%edx 
+    movb    (%edi), %dl
+    cmpb    $0, %dl 
     jne     LABEL_WHILE
 
-    movl    $0, (%edi)
+    movl    12(%ebp), %esi
+    jmp     LABEL_WHILE_1_CONDITION
 
-    movl    %ecx, 8(%ebp)
-    movl    %ecx, %eax 
+LABEL_WHILE_1:
+    subl    $1, 16(%ebp)
+    movsb 
+
+LABEL_WHILE_1_CONDITION:
+    movl    16(%ebp), %ecx
+    cmpl    $0, %ecx
+    jne     LABEL_WHILE_1
+
+    movb    $0, (%edi) 
+
+    movl    8(%ebp), %eax 
 
     movl    %ebp, %esp
     popl    %ebp

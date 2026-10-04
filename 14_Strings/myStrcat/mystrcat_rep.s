@@ -1,5 +1,5 @@
 /* =================================================================
- *	Code   : myStrcpy using while
+ *	Code   : myStrcat using while
  *	Author : Lokesh More <ldmore118@gmail.com>
  *	Course : Assembly Language Programming - Batch 11
  *	Date   : 30th Sept 2026
@@ -14,11 +14,11 @@
     msg_main_enter_second_string : 
 	.string "Enter your second string : "
 
-	msg_main_print_copied_string : 
-	.string "your copied string is : \"%s\"\n"
+	msg_main_print_concetenate_string : 
+	.string "your concetenate string is : \"%s\"\n"
 
     msg_string:
-    .string "your string is : %s\n"
+    .string "your string is : %d\n"
 
     msg_scan:
     .string "%s"
@@ -38,31 +38,31 @@ main:
 	pushl   %ebp
 	movl    %esp, %ebp
 
-    subl    $400, %esp                              # local variables (char str1[256] + char str2[128] + arguments + align to 16)
+    subl    $400, %esp                                      # local variables (char str1[256] + char str2[128] + arguments + align to 16)
 
-    movl    $msg_main_enter_first_string, (%esp)          # printf("Enter your string : ");
+    movl    $msg_main_enter_first_string, (%esp)            # printf("Enter your string : ");
     call    printf
 
-    leal    -256(%ebp), %ebx                        # gets(str1);
+    leal    -256(%ebp), %ebx                                # gets(str1);
     movl    %ebx, (%esp)
     call    gets    
 
-    movl    $msg_main_enter_second_string, (%esp)          # printf("Enter your string : ");
+    movl    $msg_main_enter_second_string, (%esp)           # printf("Enter your string : ");
     call    printf
 
-    leal    -384(%ebp), %ebx                        # gets(str2);
+    leal    -384(%ebp), %ebx                                # gets(str2);
     movl    %ebx, (%esp)
     call    gets    
 
-    # char* str = myStrcpy(str1, str2);
+    # char* str = myStrcat(str1, str2);
     leal    -256(%ebp), %ebx
     leal    -384(%ebp), %ecx
     movl    %ebx, (%esp)
     movl    %ecx, 4(%esp)
-    call    myStrcpy
-    movl    %eax, -388(%ebp)                        # char *str = myStrcpy(str1, str2);
+    call    myStrcat
+    movl    %eax, -388(%ebp)                                # char *str = myStrcat(str1, str2);
 
-    movl    $msg_main_print_copied_string, (%esp)
+    movl    $msg_main_print_concetenate_string, (%esp)
     movl    %eax, 4(%esp)
     call    printf
 
@@ -77,35 +77,40 @@ main:
 /*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o MY_STRCPY FUNCTION EXECUTION CODE STARTS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-.globl  myStrcpy
-.type   myStrcpy, @function
-myStrcpy:
+.globl  myStrcat
+.type   myStrcat, @function
+myStrcat:
     pushl   %ebp
     movl    %esp, %ebp
 
     subl    $16, %esp               # variable + align with 16
-
-    movl    $0, -4(%ebp)            # int iCounter1 = 0;
- 
-    movl    $0, %eax
+   
+    # int length = myStrlen(str);
+    movl    8(%ebp), %eax                  # %eax = str
+    movl    %eax, (%esp)
+    call    myStrlen
+    movl    %eax, %ecx                      # int length = myStrlen(str);
 
     movl    8(%ebp), %edi
-    movl    12(%ebp), %esi 
-    movl    %edi, %ecx 
-    jmp     LABEL_WHILE_CONDITION
 
-LABEL_WHILE:
-    movsb   
+    leal    (%edi, %ecx, 1), %edi
+    movl    %edi, -4(%ebp)                  # %edi = last element of str1
 
-LABEL_WHILE_CONDITION:
-    movl    (%esi), %edx 
-    cmpl    $0,%edx 
-    jne     LABEL_WHILE
+    # int length = myStrlen(str2);
+    movl    12(%ebp), %eax                  # %eax = str
+    movl    %eax, (%esp)
+    call    myStrlen
+    movl    %eax, %ecx                      # int length = myStrlen(str2);
 
-    movl    $0, (%edi)
+    movl    -4(%ebp), %edi
+    movl    12(%ebp), %esi
+ 
+    rep     movsb
 
-    movl    %ecx, 8(%ebp)
-    movl    %ecx, %eax 
+    movb    $0, (%edi)
+
+    movl    8(%ebp), %eax 
+
 
     movl    %ebp, %esp
     popl    %ebp
