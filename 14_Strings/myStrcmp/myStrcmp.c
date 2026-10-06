@@ -13,6 +13,9 @@ int main(void)
     gets(str2);
 
     int diff = myStrcmp(str1, str2);
+
+    printf("Difference is %d\n", diff);
+
     if(diff == 0)
     {
         printf("both strings are equal\n");

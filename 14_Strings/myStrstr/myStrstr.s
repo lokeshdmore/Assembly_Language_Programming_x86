@@ -1,5 +1,5 @@
 /* =================================================================
- *	Code   : myStrcmp using rep
+ *	Code   : myStrstr using rep
  *	Author : Lokesh More <ldmore118@gmail.com>
  *	Course : Assembly Language Programming - Batch 11
  *	Date   : 30th Sept 2026
@@ -15,13 +15,7 @@
 	.string "Enter your second string : "
 
     msg_main_print_result:
-    .string "Difference is %d\n"
-
-	msg_main_print_string_equal : 
-	.string "both strings are equal\n"
-
-	msg_main_print_string_unequal : 
-	.string "both strings are unequal\n"
+    .string "your finded string is \"%s\"\n"
 
 
 /* ================= READY ONLY DATA SECTION ENDS HERE ============= */
@@ -55,24 +49,16 @@ main:
     movl    %ebx, (%esp)
     call    gets    
 
-    # int diff = myStrcmp(str1, str2);
+    # char* str = myStrstr(str1, str2);
     leal    -256(%ebp), %ebx
     leal    -384(%ebp), %ecx
     movl    %ebx, (%esp)
     movl    %ecx, 4(%esp)
-    call    myStrcmp
-    movl    %eax, -388(%ebp)                                # int diff = myStrcmp(str1, str2);
-    cmpl    $0, %eax
-    jl      LABEL_NOT_EQUAL_NEGATIVE 
-    jg      LABEL_NOT_EQUAL_POSITIVE
-    movl    $msg_main_print_string_equal, (%esp)
-    call    printf 
-    jmp     LABEL_EXIT
+    call    myStrstr
+    movl    %eax, -388(%ebp)                                # char* str = myStrstr(str1, str2);
 
-LABEL_NOT_EQUAL_NEGATIVE:
-
-LABEL_NOT_EQUAL_POSITIVE:
-    movl    $msg_main_print_string_unequal, (%esp)
+    movl    $msg_main_print_result, (%esp)
+    movl    %eax, 4(%esp)
     call    printf 
 
 LABEL_EXIT:
@@ -84,12 +70,12 @@ LABEL_EXIT:
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-/*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o MY_STRCPY FUNCTION EXECUTION CODE STARTS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
+/*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o MY_STRSTR FUNCTION EXECUTION CODE STARTS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-.globl  myStrcmp
-.type   myStrcmp, @function
-myStrcmp:
+.globl  myStrstr
+.type   myStrstr, @function
+myStrstr:
     pushl   %ebp
     movl    %esp, %ebp
 
@@ -102,36 +88,24 @@ myStrcmp:
     movl    %eax, (%esp)
     call    myStrlen                        # int length = myStrlen(str1);
     movl    %eax, -4(%ebp)                  # taking backup of strlen(str1)
-
-    # int length = myStrlen(str2);
-    movl    12(%ebp), %eax                   # %eax = str
-    movl    %eax, (%esp)
-    call    myStrlen
-    
-    movl    -4(%ebp), %edx                  # %edx = length of str1 
-    cmpl    %eax, %edx                      # comparing length of str1 and str2 
-    jg      LABEL_STR1_GREATER
     movl    %eax, %ecx
-    jmp     LABEL_STR2_GREATER
+    movl    8(%ebp), %edi 
+    movl    12(%ebp), %esi
+    movb    (%esi), %al
+    jmp     LABEL_WHILE_CONDITION
 
-LABEL_STR1_GREATER:
-    movl    %edx, %ecx
+LABEL_WHILE:
+    cmpb    (%edi), %al
+    jne     LABEL_NEXT_CHAR
+    repe    scas 
 
-LABEL_STR2_GREATER:
-    movl    8(%ebp), %esi
-    movl    12(%ebp), %edi   
+LABEL_NEXT_CHAR:
+    addl    $1, %edi
 
-    repe    cmpsb
-
-    subl    $1, %esi
-    subl    $1, %edi
-
-    movb    (%esi), %cl 
-    movb    (%edi), %dl
-    subb    %dl, %cl
-
-    xorl    %eax, %eax
-    movsx   %cl, %eax 
+LABEL_WHILE_CONDITION:
+    cmpl    $0, (%edi)
+    jne     LABEL_WHILE
+    
 
 
     movl    %ebp, %esp
@@ -139,7 +113,7 @@ LABEL_STR2_GREATER:
     ret 
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-/*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o MY_STRCPY FUNCTION EXECUTION CODE STARTS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
+/*        o=o=o=o=o=o=o=o=o=o=o=o=o=o=o MY_STRSTR FUNCTION EXECUTION CODE STARTS HERE o=o=o=o=o=o=o=o=o=o=o=o=o=                       
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 /* ==================== TEXT SECTION ENDS HERE ===================== */
