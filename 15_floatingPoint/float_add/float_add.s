@@ -34,7 +34,7 @@ fNo1:
 .type   fNo2, object
 .size   fNo2, 4
 .align  4
-fNo1:
+fNo2:
     .float  20.22                                       # float fNo2 = 20.22f;
 
 
@@ -57,6 +57,32 @@ main:
     pushl   %ebp
     movl    %esp, %ebp
     
+    flds    fNo2
+    flds    fNo1
+    movl    $msg_main_print_fNo, (%esp)
+    fstpl   4(%esp)
+    fstpl   12(%esp)
+    call    printf 
+
+    flds    fNo2
+    flds    fNo1
+    faddp   
+    fstpl   fAns1
+
+    movl    $msg_main_print_fAns1, (%esp)
+    fldl    fAns1
+    fstpl   4(%esp)
+    call    printf 
+
+    movl    $3, -4(%ebp)
+    flds    fNo1
+    fiaddl  -4(%ebp)
+    fstpl   fAns2
+
+    movl    $msg_main_print_fAns2, (%esp)
+    fldl    fAns2
+    fstpl   4(%esp)
+    call    printf 
 
 
     movl    $0, (%esp)
