@@ -55,7 +55,7 @@ main:
 	call printf
 	addl $8, %esp
 
-	pushl $0
+	pushl $10
 	call exit
 
 # addition function() execution code
