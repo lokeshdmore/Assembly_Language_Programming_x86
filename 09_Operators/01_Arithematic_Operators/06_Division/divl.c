@@ -10,7 +10,7 @@ int main(void)
 
 
     printf("Enter operand 1: \t");
-    scanf("%d", &iNumerator);
+    scanf("%qd", &iNumerator);
 
     printf("Enter operand 2: \t");
     scanf("%d", &iDenominator);

@@ -19,7 +19,10 @@
     msg_main_print_remainder:
     .string "remainder = %d\n"
 
-    msg_main_scan:
+    msg_main_scan_nr:
+    .string "%qd"
+
+    msg_main_scan_dr:
     .string "%d"
 
 /* ================= READY ONLY DATA SECTION ENDS HERE ============= */
@@ -44,7 +47,7 @@ main:
     # scan first operand
     leal    -8(%ebp), %ebx
     pushl   %ebx
-    pushl   $msg_main_scan
+    pushl   $msg_main_scan_nr
     call    scanf
     addl    $8, %esp
 
@@ -55,7 +58,7 @@ main:
     # scan second operand
     leal   -12(%ebp), %ecx
     pushl   %ecx
-    pushl   $msg_main_scan
+    pushl   $msg_main_scan_dr
     call    scanf
     addl    $8, %esp
     
@@ -76,6 +79,7 @@ main:
     addl    $8, %esp
 
     # print the remainder
+    movl    -20(%ebp), %edx 
     pushl   %edx
     pushl   $msg_main_print_remainder
     call    printf
